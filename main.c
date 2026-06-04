@@ -3,7 +3,12 @@
 #include "cpu.h"
 
 int main(){
-	memory[0x5] = 12;
-	printf("OK %d", memory[0x5]);
+	V[0x1] = 0;
+	V[0x2] = 4;
+	V[0x0] = 120;
+	PC = 0x0;
+	execute(0x1);
+	printf("Final number in memory[%d]: %d", V[0x2],memory[0x4]);
+
 }
 
