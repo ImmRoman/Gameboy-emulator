@@ -1,6 +1,6 @@
 CC = gcc
 CFLAGS = -Wall -g
-TARGET = -gb_emulator
+TARGET = main
 SRCS = main.c cpu.c 
 OBJS = $(SRCS:.c=.o)
 
