@@ -1,14 +1,12 @@
 
 #include <stdio.h>
 #include "cpu.h"
-
-int main(){
-	V[0x1] = 0;
-	V[0x2] = 4;
-	V[0x0] = 120;
+extern uint8_t V[0xF]; 
+int main()
+{
+	memory[0x0] = 0x31;
+	memory[0x1] = 2;
+	memory[0x2] = 4;
 	PC = 0x0;
-	execute(0x1);
-	printf("Final number in memory[%d]: %d", V[0x2],memory[0x4]);
-
+	execute();
 }
-

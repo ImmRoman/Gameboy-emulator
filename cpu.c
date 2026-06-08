@@ -1,26 +1,29 @@
 #include <stdio.h>
 #include "cpu.h"
-
 uint8_t memory[0xFFFF];
 uint16_t PC;
 uint16_t SP;
 uint8_t V[0xF];
 uint16_t HL;
 
-void execute(uint8_t command){
-		if(command == 0) return;
-		uint8_t imm8 = memory[PC +1];
-		uint16_t imm16 = memory[PC +2];
-		imm16 = imm16 << 8 + memory[PC+1];
-		HL = V[0x5];
-		HL = (HL << 8) + V[0x6];
-		V[0] = 2;
-		switch(command << 6){
+void execute(){
 
+	//null
+	
+	uint8_t command = memory[PC];
+	uint8_t imm8 = memory[PC + 1];
+	
+	uint16_t imm16 = memory[PC + 1];
+	imm16 = (imm16 << 8) + memory[PC + 2];
+	HL = V[0x5];
+	HL = (HL << 8) + V[0x6];
+	
+	if(command == 0){PC+=1;return;}
+		switch(command >> 6){
 		//BLOCK 1 pandocs
 		case 0x0:
 		// Central Nibble 
-		uint8_t CN = (command & 0x18) >> 4;
+		uint8_t CN = (command & 0x30) >> 4;
 		// LOAD
 		switch(command & 0xF) {
 			case 0x1:

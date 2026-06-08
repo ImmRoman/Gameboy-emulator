@@ -9,7 +9,8 @@ all: $(TARGET)
 # Rule to link the object files and create the final executable
 $(TARGET): $(OBJS)
 	$(CC) $(CFLAGS) -o $(TARGET) $(OBJS)
-
+	rm -f $(OBJS)
+	./$(TARGET)
 # Rule to compile individual .c files into .o (object) files
 # It also specifies that they depend on cpu.h
 %.o: %.c cpu.h
