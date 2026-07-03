@@ -2,3 +2,4 @@
 "*.exe" 
 "gb_emulator" 
 /.vscode
+main.exe
