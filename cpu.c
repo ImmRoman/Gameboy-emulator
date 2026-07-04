@@ -133,7 +133,7 @@ void p_registers(){
 		printf("V[0x%d] = %x | ",i,V[i]);
 	}
 	p_line(lines);
-	printf("\nPC = %x | SP = %x", PC, r16[0x3]);
+	printf("\nPC = %x | SP = %x", PC, SP);
 }
 
 void p_line(int lenght){
