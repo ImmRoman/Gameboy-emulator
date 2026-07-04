@@ -14,7 +14,7 @@ uint8_t V[0xF];
 uint16_t r16[0x4];
 extern enum r8_t;
 extern enum r16_t;
-void initialize_r16();
+void init_r16();
 void commit_r16();
 
 int line_bool = 1; //global variable for line printer
@@ -34,67 +34,56 @@ void execute(){
 		case 0x0:
 		// Central Nibble 
 		uint8_t CN = (command & 0x30) >> 4;
-		// LOAD
-		switch(command & 0xF) {
-			case 0x1:
-				//ld r16, imm16
-				if(CN == 3){
-					SP = imm16;
-					break;
-				}
-				V[2*CN] = memory[PC+1];
-				V[2*CN+1] = memory[PC+2];
-				//we've read the imm16 so we go 2 steps ahead to the next instruction with the PC
-				PC += 2;
+		uint16_t addr;
+			// LOAD
+			switch (command & 0xF)
+		{
+		case 0x1:
+			// ld r16, imm16
+			if (CN == 3)
+			{
+				SP = imm16;
+				break;
+			}
+			V[2 * CN] = memory[PC + 1];
+			V[2 * CN + 1] = memory[PC + 2];
+			// we've read the imm16 so we go 2 steps ahead to the next instruction with the PC
+			PC += 2;
 			break;
 
 			case 0x2:
 			// ld [mem16], a
 				if(CN > 1){
 					//hl-
-					initialize_r16();
-					uint16_t addr = V[H];
-					addr = (addr<<8) + V[L];
-					memory[addr] = V[A];
-					printf("BRO %x BRO",r16[HL]);
+					init_r16();
+					memory[r16[HL]] = V[A];
 					if (CN == 2)
 						r16[HL]--;
 					else r16[HL]++;
-					V[H] = r16[HL] >> 8;
-					V[L] = r16[HL] & 0xFF;
+					commit_r16();
 					break;
 				}
 
-				uint16_t addr = V[2*CN];
+				addr = V[2*CN];
 				addr = (addr<<8) + V[2*CN+1];
 				memory[addr] = V[A];
 			break;
 
-			case 0x10:
-			addr = V[2*CN+1];
+			case 0xA:
 			// ld  a, mem[r16]
-				if(CN == 3){
-					//hl-
-					addr = V[0x5];
-					addr = (addr<<8) + V[0x6];
-					V[0] = memory[addr];
-
-					r16[HL]--;
-					V[0x5] = r16[CN] >> 8;
-					V[0x6] = r16[CN] & 0xF;
-					break;
-				}
-				
-				addr = (addr<<8) + V[2*CN+2];
-				V[0] = memory[addr];
-				//hl+
-				if(CN == HL){
-					r16[CN]++;	
-					V[0x5] = r16[CN] >> 8;
-					V[0x6] = r16[CN] & 0xF;
-
-				}
+			if(CN > 1){
+				init_r16();
+				V[A] = memory[r16[HL]];
+				if(CN == 2)
+					r16[HL]++;
+				else r16[HL]--;
+				commit_r16();
+				break;
+			}
+			init_r16();
+			V[A] = memory[r16[CN]];
 			break;
+
 			case 0x8:
 				// ld [imm16], sp. EZ one
 				SP = imm16;
@@ -103,8 +92,7 @@ void execute(){
 			case 0x3:
 			// inc r16
 			r16[CN] ++;
-
-		}	
+			}
 		// BLOCK 2 pandocs
 		case 0x1:
 
@@ -124,7 +112,7 @@ void execute(){
 	PC++;
 	}
 
-void initialize_r16(){
+void init_r16(){
 	for(int i = 0; i < 4 ; i++){
 		r16[i] = V[2*i];
 		r16[i] = (r16[i] << 8) + V[2*i + 1];
