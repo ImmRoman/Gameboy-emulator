@@ -2,13 +2,21 @@
 #include "cpu.h"
 uint8_t memory[0xFFFF];
 uint16_t PC;
+uint16_t SP;
 uint8_t V[0xF];
-uint16_t r16[0x4]; //16 bit registers
-typedef enum {
-	BC,DE,HL,SP
-} r16_t;
+
+
+
+/* 16 bit registers
+	initialize r16 copies from V[0xF] into the u16 r16 registers
+	commit copies r16 changes into the correspective V[0xF]
+*/
+uint16_t r16[0x4];
+extern enum r8_t;
+extern enum r16_t;
 void initialize_r16();
-void update_r16();
+void commit_r16();
+
 int line_bool = 1; //global variable for line printer
 	
 void execute(){
@@ -18,7 +26,6 @@ void execute(){
 	uint16_t imm16 = memory[PC + 1];
 	
 	imm16 = (imm16 << 8) + memory[PC + 2];
-	initialize_r16();
 	
 	if(command == 0){PC+=1;return;}
 
@@ -32,33 +39,36 @@ void execute(){
 			case 0x1:
 				//ld r16, imm16
 				if(CN == 3){
-					r16[SP] = imm16;
+					SP = imm16;
 					break;
 				}
-				V[2*CN+1] = memory[PC+1];
-				V[2*CN+2] = memory[PC+2];
+				V[2*CN] = memory[PC+1];
+				V[2*CN+1] = memory[PC+2];
 				//we've read the imm16 so we go 2 steps ahead to the next instruction with the PC
 				PC += 2;
 			break;
 
 			case 0x2:
 			// ld [mem16], a
-				if(CN == 3){
+				if(CN > 1){
 					//hl-
-					uint16_t addr = V[0x5];
-					addr = (addr<<8) + V[0x6];
-					memory[addr] = V[0];
-					r16[HL]--;
-					V[0x5] = HL >> 8;
-					V[0x6] = HL & 0xF;
+					initialize_r16();
+					uint16_t addr = V[H];
+					addr = (addr<<8) + V[L];
+					memory[addr] = V[A];
+					printf("BRO %x BRO",r16[HL]);
+					if (CN == 2)
+						r16[HL]--;
+					else r16[HL]++;
+					printf("BRO %x BRO",r16[HL]);
+					V[H] = r16[HL] >> 8;
+					V[L] = r16[HL] & 0xFF;
 					break;
 				}
-				
-				uint16_t addr = V[2*CN+1];
-				addr = (addr<<8) + V[2*CN+2];
-				memory[addr] = V[0];
-				//hl+
-				if(CN == 2) V[0x6] += 1;
+
+				uint16_t addr = V[2*CN];
+				addr = (addr<<8) + V[2*CN+1];
+				memory[addr] = V[A];
 			break;
 
 			case 0x10:
@@ -88,7 +98,7 @@ void execute(){
 			break;
 			case 0x8:
 				// ld [imm16], sp. EZ one
-				r16[SP] = imm16;
+				SP = imm16;
 			break;
 			
 			case 0x3:
@@ -113,7 +123,6 @@ void execute(){
 
 	}
 	PC++;
-	update_r16();
 	}
 
 void initialize_r16(){
@@ -123,8 +132,8 @@ void initialize_r16(){
 	}
 }
 
-void update_r16(){
-	for(int i = 0; i < 4 ; i++){
+void commit_r16(){
+	for(int i = 0; i < 3 ; i++){
 		V[2*i] = r16[i] >> 8;
 		V[2*i + 1] = r16[i] & 0xFF;
 	}
@@ -137,6 +146,7 @@ void p_registers(){
 		printf("V[0x%d] = %x | ",i,V[i]);
 	}
 	p_line(lines);
+	printf("\nPC = %x | SP = %x", PC, r16[0x3]);
 }
 
 void p_line(int lenght){
