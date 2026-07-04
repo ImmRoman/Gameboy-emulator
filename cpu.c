@@ -60,7 +60,6 @@ void execute(){
 					if (CN == 2)
 						r16[HL]--;
 					else r16[HL]++;
-					printf("BRO %x BRO",r16[HL]);
 					V[H] = r16[HL] >> 8;
 					V[L] = r16[HL] & 0xFF;
 					break;
