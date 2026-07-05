@@ -2,6 +2,24 @@
 #ifndef CPU
 #define CPU
 #include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
+
+#ifndef ASSERT
+#ifdef NDEBUG
+#define ASSERT(expr) ((void)0)
+#else
+#define ASSERT(expr) do { \
+    int _assert_value = (expr); \
+    if (!_assert_value) { \
+        fprintf(stderr, "\nASSERT failed: %s:%d: %s\n", __FILE__, __LINE__, #expr); \
+        fprintf(stderr, "was instead: %d\n", _assert_value); \
+        abort(); \
+    } \
+} while (0)
+#endif
+#endif
+
     extern uint8_t memory[0xFFFF];
     extern uint16_t PC;
     extern uint16_t SP;

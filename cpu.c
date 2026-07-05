@@ -20,7 +20,8 @@ void commit_r16();
 int line_bool = 1; //global variable for line printer
 	
 void execute(){
-		
+	ASSERT(PC < sizeof(memory));
+	
 	uint8_t command = memory[PC];
 	uint8_t imm8 = memory[PC + 1];
 	uint16_t imm16 = memory[PC + 1];
@@ -135,7 +136,7 @@ void execute(){
 			V[CN] --;
 			break;
 		}
-		
+
 		// BLOCK 2 pandocs
 		case 0x1:
 
