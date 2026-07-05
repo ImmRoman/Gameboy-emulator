@@ -35,7 +35,11 @@ void execute(){
 		// Central Nibble 
 		uint8_t CN = (command & 0x30) >> 4;
 		uint16_t addr;
-			// LOAD
+		/*
+		-----------------
+		Last byte switch
+		------------------
+		*/
 			switch (command & 0xF)
 		{
 		case 0x1:
@@ -114,6 +118,23 @@ void execute(){
 			commit_r16();
 			break;
 			}
+		/*
+		---------------------
+		Last 3 bits switch
+		---------------------
+		*/
+		switch(command & 0x7){
+			// inc r8
+			case 0x4:
+			if(CN == 3){init_r16();r16[HL]++;commit_r16();break;}
+			V[CN] ++;
+			break;
+			// dec r8
+			case 0x5:
+			if(CN == 3){init_r16();r16[HL]--;commit_r16();break;}
+			V[CN] --;
+			break;
+		}
 		// BLOCK 2 pandocs
 		case 0x1:
 
