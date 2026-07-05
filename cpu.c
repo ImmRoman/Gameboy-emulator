@@ -88,10 +88,31 @@ void execute(){
 				// ld [imm16], sp. EZ one
 				SP = imm16;
 			break;
-			
+			/*--------------------
+			--- r16 Operations ---
+			---------------------*/	
 			case 0x3:
 			// inc r16
+			if(CN == 3){SP++;break;}
+			init_r16();
 			r16[CN] ++;
+			commit_r16();
+			break;
+
+			// dec r16
+			case 0xB:
+			if(CN == 3){SP--;break;}
+			init_r16();
+			r16[CN] --;
+			commit_r16();
+			break;
+			// add hl, r16
+			case 0x9:
+			if(CN == 3){SP += r16[HL];break;}
+			init_r16();
+			r16[HL] += r16[CN];
+			commit_r16();
+			break;
 			}
 		// BLOCK 2 pandocs
 		case 0x1:
