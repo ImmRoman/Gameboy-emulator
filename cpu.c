@@ -35,6 +35,7 @@ void execute(){
 		case 0x0:
 		// Central Nibble 
 		uint8_t CN = (command & 0x30) >> 4;
+		uint8_t CN3 = (command & 0x38) >> 3;
 		uint16_t addr;
 		/*
 		-----------------
@@ -127,13 +128,13 @@ void execute(){
 		switch(command & 0x7){
 			// inc r8
 			case 0x4:
-			if(CN == 3){init_r16();r16[HL]++;commit_r16();break;}
-			V[CN] ++;
+			if(CN3 == 3){init_r16();r16[HL]++;commit_r16();break;}
+			V[CN3] ++;
 			break;
 			// dec r8
 			case 0x5:
-			if(CN == 3){init_r16();r16[HL]--;commit_r16();break;}
-			V[CN] --;
+			if(CN3 == 3){init_r16();r16[HL]--;commit_r16();break;}
+			V[CN3] --;
 			break;
 		}
 

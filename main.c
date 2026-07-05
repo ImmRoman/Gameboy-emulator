@@ -9,9 +9,11 @@ void test_b0_N11();
 void test_b0_N3();
 void test_b0_N2();
 void test_b0_NA();
+void test_b0_N4();
+void test_b0_N5();
 int main()
 {
-	test_b0_N11();
+	test_b0_N5();
 }
 
 //Test Block 0 Nibble 2
@@ -70,4 +72,24 @@ void test_b0_N11(){
 	p_registers();
 	ASSERT(V[B] == 0x0F);
 	ASSERT(V[C] == 0xFD);
+}
+
+void test_b0_N4(){
+	memory[0x0] = 0x4;
+	V[B] = 0x0A;	
+	PC = 0x0;
+	execute();
+	p_registers();
+	ASSERT(V[B] == 0x0B);
+}
+
+
+
+void test_b0_N5(){
+	memory[0x0] = 0x5;
+	V[B] = 0x0A;	
+	PC = 0x0;
+	execute();
+	p_registers();
+	ASSERT(V[B] == 0x09);
 }
