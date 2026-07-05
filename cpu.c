@@ -128,13 +128,19 @@ void execute(){
 		switch(command & 0x7){
 			// inc r8
 			case 0x4:
-			if(CN3 == 3){init_r16();r16[HL]++;commit_r16();break;}
+			if(CN3 == 6){init_r16();r16[HL]++;commit_r16();break;}
 			V[CN3] ++;
 			break;
 			// dec r8
 			case 0x5:
-			if(CN3 == 3){init_r16();r16[HL]--;commit_r16();break;}
+			if(CN3 == 6){init_r16();r16[HL]--;commit_r16();break;}
 			V[CN3] --;
+			break;
+			case 0x6:
+			// ld r8, imm8
+			if(CN3 == 6){init_r16();r16[HL] = imm8;commit_r16();break;}
+			V[CN3] = imm8;
+			PC++;
 			break;
 		}
 

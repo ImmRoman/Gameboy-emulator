@@ -1,5 +1,6 @@
 
 #include <stdio.h>
+#include <string.h>
 #include "cpu.h"
 extern uint8_t V[0xF];
 extern uint8_t memory[0xFFFF];
@@ -12,11 +13,15 @@ void test_b0_NA();
 void test_b0_N4();
 void test_b0_N5();
 void test_b0_N9();
-int main()
-{
-	test_b0_N9();
-}
+void test_b0_N6();
 
+
+void clean(){
+	memset(V, 0, sizeof(V));
+    memset(memory, 0, sizeof(memory));
+	PC = 0;
+	SP = 0;
+}
 //Test Block 0 Nibble 2
 // ld [r16mem], a
 void test_b0_N2(){
@@ -28,7 +33,6 @@ void test_b0_N2(){
 	PC = 0x0;
 	execute();
 	printf("memory[r16] = %x\n", memory[0x9050]);
-	p_registers();
 	ASSERT(memory[0x9050] == 0x87);
 }
 //Test Block 0 Nibble A
@@ -39,7 +43,6 @@ void test_b0_NA(){
 	memory[0x9050] = 0x87;
 	PC = 0x0;
 	execute();
-	p_registers();
 	ASSERT(V[A] == memory[0x9050]);
 }
 //Insert imm16 into SP
@@ -49,7 +52,6 @@ void test_b0_N8(){
 	memory[0x2] = 0x9F;
 	PC = 0x0;
 	execute();
-	p_registers();
 	ASSERT(SP == 0x109F);
 }
 
@@ -59,7 +61,6 @@ void test_b0_N3(){
 	V[C] = 0xFF;
 	PC = 0x0;
 	execute();
-	p_registers();
 	ASSERT(V[B] == 0x10);
 	ASSERT(V[C] == 0x00);
 }
@@ -70,7 +71,6 @@ void test_b0_N11(){
 	V[C] = 0xFE;
 	PC = 0x0;
 	execute();
-	p_registers();
 	ASSERT(V[B] == 0x0F);
 	ASSERT(V[C] == 0xFD);
 }
@@ -80,8 +80,16 @@ void test_b0_N4(){
 	V[B] = 0x0A;	
 	PC = 0x0;
 	execute();
-	p_registers();
 	ASSERT(V[B] == 0x0B);
+}
+void test_b0_N4_2(){
+	memory[0x0] = 0x34;
+	V[H] = 0x0F;
+	V[L] = 0xFF;	
+	PC = 0x0;
+	execute();
+	ASSERT(V[H] == 0x10);
+	ASSERT(V[L] == 0x00);
 }
 
 void test_b0_N5(){
@@ -89,10 +97,17 @@ void test_b0_N5(){
 	V[B] = 0x0A;	
 	PC = 0x0;
 	execute();
-	p_registers();
 	ASSERT(V[B] == 0x09);
 }
-
+void test_b0_N5_2(){
+	memory[0x0] = 0x35;
+	V[H] = 0x10;
+	V[L] = 0x00;	
+	PC = 0x0;
+	execute();
+	ASSERT(V[H] == 0x0F);
+	ASSERT(V[L] == 0xFF);
+}
 void test_b0_N9(){
 	memory[0x0] = 0x9;
 	V[H] = 0x0A;	
@@ -100,7 +115,28 @@ void test_b0_N9(){
 	V[C] = 0x01;
 	PC = 0x0;
 	execute();
-	p_registers();
 	ASSERT(V[H] == 0x0B);
 	ASSERT(V[L] == 0x00);
+}
+
+void test_b0_N6(){
+	memory[0x0]= 0x36;
+	memory[0x1]= 0xF8;
+	V[H] = 0x10;
+	PC = 0x0;
+	execute();
+	ASSERT(V[H] == 0x00);
+	ASSERT(V[L] == 0xF8);
+}
+
+int main()
+{
+	test_b0_N6();
+	clean();
+	test_b0_N9();
+	clean();
+	test_b0_N4_2();	
+	clean();
+	test_b0_N5_2();
+	clean();
 }
