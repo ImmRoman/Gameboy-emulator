@@ -35,7 +35,7 @@
     {BC,DE,HL,SP_} r16_t;
 
     typedef enum
-    {B,C,D,E,H,L,HL_,A} r8_t;
+    {B,C,D,E,H,L,F,A} r8_t;
     void execute();
     extern void p_registers();
 	extern void p_line();

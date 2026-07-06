@@ -142,6 +142,25 @@ void execute(){
 			V[CN3] = imm8;
 			PC++;
 			break;
+			
+
+			//rotation
+			case 0x7:
+			switch (CN3)
+			{
+				case 0x0:
+				//rlca rotate V[A] to the left and update the carry flag
+					if(V[A] > 0x70){
+						V[F] = V[F] | 0x8;
+					}
+					V[A] = V[A] << 1;
+					V[A] = V[A] | ((V[F] & 0x8) >> 3);
+					break;
+			
+			default:
+				break;
+			}
+			break;
 		}
 
 		// BLOCK 2 pandocs
@@ -178,10 +197,11 @@ void commit_r16(){
 }
 
 void p_registers(){
-	int lines = 103;
+	int lines = 105;
 	p_line(lines);
+	printf("| ");
 	for(int i=0; i<8;i++){
-		printf("V[0x%d] = %x | ",i,V[i]);
+		printf("V[%d] = 0x%x | ",i,V[i]);
 	}
 	p_line(lines);
 	printf("\nPC = %x | SP = %x", PC, SP);
