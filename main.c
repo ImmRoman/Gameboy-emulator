@@ -138,6 +138,16 @@ void test_b0_N7(){
 	ASSERT(V[F] == 0x08);
 }
 
+void test_b0_NF(){
+	memory[0x0]= 0xF;
+	V[A] = 0x01;
+	PC = 0x0;
+	execute();
+	ASSERT(V[A] == 0x80);
+	ASSERT(V[F] == 0x08);
+}
+
+
 	int main(){
 		
 	test_b0_N6();
@@ -149,5 +159,6 @@ void test_b0_N7(){
 	test_b0_N5_2();
 	clean();
 	test_b0_N7();
-	p_registers();
+	clean();
+	test_b0_NF();
 }

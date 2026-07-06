@@ -156,7 +156,15 @@ void execute(){
 					V[A] = V[A] << 1;
 					V[A] = V[A] | ((V[F] & 0x8) >> 3);
 					break;
-			
+
+				case 0x1:
+				//rrca opposite of previous
+				if(V[A] & 0x1){
+					V[F] |= 0x8;
+				}
+				V[A] = V[A] >> 1;
+				V[A] = V[A] | ((V[F] & 0x8) << 4);
+				break;
 			default:
 				break;
 			}
