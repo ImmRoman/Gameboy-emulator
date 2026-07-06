@@ -24,9 +24,9 @@ void execute(){
 	
 	uint8_t command = memory[PC];
 	uint8_t imm8 = memory[PC + 1];
-	uint16_t imm16 = memory[PC + 1];
+	uint16_t imm16 = memory[PC + 2];
 	
-	imm16 = (imm16 << 8) + memory[PC + 2];
+	imm16 = (imm16 << 8) + memory[PC + 1];
 	
 	if(command == 0){PC+=1;return;}
 
@@ -150,7 +150,7 @@ void execute(){
 			{
 				case 0x0:
 				//rlca rotate V[A] to the left and update the carry flag
-					if(V[A] > 0x70){
+					if(V[A] > 0x7F){
 						V[F] = V[F] | 0x8;
 					}
 					V[A] = V[A] << 1;
@@ -165,6 +165,38 @@ void execute(){
 				V[A] = V[A] >> 1;
 				V[A] = V[A] | ((V[F] & 0x8) << 4);
 				break;
+
+				case 0x2:
+				//rla
+				if(V[A] > 0x7F){
+					V[A] = V[A] << 1;
+					V[A] |= ((V[F] & 0x8) >> 3);
+					V[F] |= 0x8;
+					break;
+				}
+				V[A] = V[A] << 1;
+				V[A] |= ((V[F] & 0x8) >> 3);
+				V[F] &= 0xF7;
+				break;
+				
+				case 0x3:
+				//rra
+				if(V[A] & 0x01){
+					V[A] = V[A] >> 1;
+					V[A] |= ((V[F] & 0x8) << 4);
+					V[F] |= 0x8;
+					break;
+				}
+				V[A] = V[A] >> 1;
+				V[A] |= ((V[F] & 0x8) << 4);
+				V[F] &= 0xF7;
+				break;
+				
+				case 0x4:
+				// daa
+
+				break;
+
 			default:
 				break;
 			}

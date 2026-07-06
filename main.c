@@ -4,8 +4,6 @@
 #include "cpu.h"
 extern uint8_t V[0xF];
 extern uint8_t memory[0xFFFF];
-extern enum r8_t;
-extern enum r16_t;
 void test_b0_N11();
 void test_b0_N3();
 void test_b0_N2();
@@ -146,7 +144,25 @@ void test_b0_NF(){
 	ASSERT(V[A] == 0x80);
 	ASSERT(V[F] == 0x08);
 }
+void test_b0_17(){
+	memory[0x0]= 0x17;
+	V[A] = 0x01;
+	V[F] = 0x08;
+	PC = 0x0;
+	execute();
+	ASSERT(V[A] == 0x03);
+	ASSERT(V[F] == 0x00);
+}
 
+void test_b0_1F(){
+	memory[0x0]= 0x1F;
+	V[A] = 0x01;
+	V[F] = 0x08;
+	PC = 0x0;
+	execute();
+	ASSERT(V[A] == 0x80);
+	ASSERT(V[F] == 0x08);
+}
 
 	int main(){
 		
@@ -161,4 +177,8 @@ void test_b0_NF(){
 	test_b0_N7();
 	clean();
 	test_b0_NF();
+	clean();
+	test_b0_17();
+	clean();
+	test_b0_1F();
 }
