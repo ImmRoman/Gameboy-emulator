@@ -99,16 +99,18 @@ void execute(){
 			---------------------*/	
 			case 0x3:
 			// inc r16
-			if(CN == 3){SP++;break;}
+			if(CN == 3){if(SP==0xFFFF){V[F] |= 0x08;}SP++;break;}
 			init_r16();
+			if(r16[CN] == 0xFFFF){V[F] |= 0x08;}
 			r16[CN] ++;
 			commit_r16();
 			break;
 
 			// dec r16
 			case 0xB:
-			if(CN == 3){SP--;break;}
+			if(CN == 3){if(SP == 0){V[F]|= 0x08;}SP--;break;}
 			init_r16();
+			if(r16[CN] == 0){V[F] |= 0x08;}
 			r16[CN] --;
 			commit_r16();
 			break;
@@ -128,12 +130,20 @@ void execute(){
 		switch(command & 0x7){
 			// inc r8
 			case 0x4:
-			if(CN3 == 6){init_r16();r16[HL]++;commit_r16();break;}
+			if(CN3 == 6){
+				init_r16();
+				if(r16[HL] == 0xFFFF){V[F] |= 0x8; }
+				r16[HL]++;
+				commit_r16();
+				break;
+			}
+			if(V[CN3] == 0xFF){V[F] |= 0x8;}
 			V[CN3] ++;
 			break;
 			// dec r8
 			case 0x5:
-			if(CN3 == 6){init_r16();r16[HL]--;commit_r16();break;}
+			if(CN3 == 6){init_r16();if(r16[HL]==0){V[F]|=0x08;}r16[HL]--;commit_r16();break;}
+			if(V[CN3]==0){V[F]|=0x08;}
 			V[CN3] --;
 			break;
 			case 0x6:
