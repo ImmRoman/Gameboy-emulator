@@ -18,7 +18,16 @@ void init_r16();
 void commit_r16();
 
 int line_bool = 1; //global variable for line printer
-	
+typedef enum{
+	Z_FLAG = 0x80,
+	SUB_FLAG = 0x40,
+	H_FLAG = 0x20,
+	C_FLAG = 0x10
+}flags;
+
+void set_flag(uint8_t FLAG){
+	V[F] |= FLAG; 
+}
 void execute(){
 	ASSERT(PC < sizeof(memory));
 	
@@ -99,21 +108,20 @@ void execute(){
 			---------------------*/	
 			case 0x3:
 			// inc r16
-			if(CN == 3){if(SP==0xFFFF){V[F] |= 0x08;}SP++;break;}
+			if(CN == 3){SP++;break;}
 			init_r16();
-			if(r16[CN] == 0xFFFF){V[F] |= 0x08;}
 			r16[CN] ++;
 			commit_r16();
 			break;
 
 			// dec r16
 			case 0xB:
-			if(CN == 3){if(SP == 0){V[F]|= 0x08;}SP--;break;}
+			if(CN == 3){SP--;break;}
 			init_r16();
-			if(r16[CN] == 0){V[F] |= 0x08;}
 			r16[CN] --;
 			commit_r16();
 			break;
+
 			// add hl, r16
 			case 0x9:
 			if(CN == 3){SP += r16[HL];break;}
@@ -132,7 +140,6 @@ void execute(){
 			case 0x4:
 			if(CN3 == 6){
 				init_r16();
-				if(r16[HL] == 0xFFFF){V[F] |= 0x8; }
 				r16[HL]++;
 				commit_r16();
 				break;
@@ -142,7 +149,7 @@ void execute(){
 			break;
 			// dec r8
 			case 0x5:
-			if(CN3 == 6){init_r16();if(r16[HL]==0){V[F]|=0x08;}r16[HL]--;commit_r16();break;}
+			if(CN3 == 6){init_r16();r16[HL]--;commit_r16();break;}
 			if(V[CN3]==0){V[F]|=0x08;}
 			V[CN3] --;
 			break;
