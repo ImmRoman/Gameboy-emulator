@@ -34,6 +34,7 @@ void execute(){
 	uint8_t command = memory[PC];
 	uint8_t imm8 = memory[PC + 1];
 	uint16_t imm16 = memory[PC + 2];
+	int tmp;
 	
 	imm16 = (imm16 << 8) + memory[PC + 1];
 	
@@ -126,7 +127,9 @@ void execute(){
 			case 0x9:
 			if(CN == 3){SP += r16[HL];break;}
 			init_r16();
+			tmp = r16[HL];
 			r16[HL] += r16[CN];
+			if(r16[HL] < tmp) set_flag(C_FLAG);
 			commit_r16();
 			break;
 			}

@@ -163,6 +163,18 @@ void test_b0_1F(){
 	ASSERT(V[A] == 0x80);
 	ASSERT(V[F] == 0x08);
 }
+void test_add_hl_flag(){
+	memory[0x0] = 0x9;
+	PC = 0x0;
+	V[H] = 0xFF;
+	V[L] = 0xFA;
+	V[B] = 0x0;
+	V[C] = 0x08;
+	execute();
+	ASSERT(V[F] & 0x10);
+	ASSERT(V[L] == 0x2);		
+
+}
 
 	int main(){
 		
@@ -181,4 +193,6 @@ void test_b0_1F(){
 	test_b0_17();
 	clean();
 	test_b0_1F();
+	clean();
+	test_add_hl_flag();
 }
