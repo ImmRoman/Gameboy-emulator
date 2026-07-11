@@ -141,6 +141,7 @@ void execute(){
 		switch(command & 0x7){
 			// inc r8
 			case 0x4:
+			// no flag set for r16, only for r8
 			if(CN3 == 6){
 				init_r16();
 				r16[HL]++;
@@ -149,12 +150,15 @@ void execute(){
 			}
 			if(V[CN3] == 0xFF){V[F] |= 0x8;}
 			V[CN3] ++;
+			if(V[CN3] == 0x00){set_flag(Z_FLAG);}
 			break;
 			// dec r8
 			case 0x5:
+			// no flag set for r16, only for r8
 			if(CN3 == 6){init_r16();r16[HL]--;commit_r16();break;}
 			if(V[CN3]==0){V[F]|=0x08;}
 			V[CN3] --;
+			if(V[CN3] == 0x00){set_flag(Z_FLAG);}
 			break;
 			case 0x6:
 			// ld r8, imm8
@@ -171,7 +175,7 @@ void execute(){
 				case 0x0:
 				//rlca rotate V[A] to the left and update the carry flag
 					if(V[A] > 0x7F){
-						V[F] = V[F] | 0x8;
+						set_flag(C_FLAG);
 					}
 					V[A] = V[A] << 1;
 					V[A] = V[A] | ((V[F] & 0x8) >> 3);
@@ -180,7 +184,7 @@ void execute(){
 				case 0x1:
 				//rrca opposite of previous
 				if(V[A] & 0x1){
-					V[F] |= 0x8;
+					set_flag(C_FLAG);
 				}
 				V[A] = V[A] >> 1;
 				V[A] = V[A] | ((V[F] & 0x8) << 4);
@@ -191,11 +195,12 @@ void execute(){
 				if(V[A] > 0x7F){
 					V[A] = V[A] << 1;
 					V[A] |= ((V[F] & 0x8) >> 3);
-					V[F] |= 0x8;
+					
 					break;
 				}
 				V[A] = V[A] << 1;
 				V[A] |= ((V[F] & 0x8) >> 3);
+				// set carry flag to 0
 				V[F] &= 0xF7;
 				break;
 				
@@ -204,11 +209,12 @@ void execute(){
 				if(V[A] & 0x01){
 					V[A] = V[A] >> 1;
 					V[A] |= ((V[F] & 0x8) << 4);
-					V[F] |= 0x8;
+					set_flag(C_FLAG);
 					break;
 				}
 				V[A] = V[A] >> 1;
 				V[A] |= ((V[F] & 0x8) << 4);
+				//set carry flag to 0
 				V[F] &= 0xF7;
 				break;
 				
