@@ -113,6 +113,7 @@ void execute(){
 			---------------------*/	
 			case 0x3:
 			// inc r16
+			clear_flag(SUB_FLAG);
 			if(CN == 3){SP++;break;}
 			init_r16();
 			r16[CN] ++;
@@ -121,6 +122,7 @@ void execute(){
 
 			// dec r16
 			case 0xB:
+			set_flag(SUB_FLAG);
 			if(CN == 3){SP--;break;}
 			init_r16();
 			r16[CN] --;
@@ -129,6 +131,7 @@ void execute(){
 
 			// add hl, r16
 			case 0x9:
+			clear_flag(SUB_FLAG);
 			if(CN == 3){SP += r16[HL];break;}
 			init_r16();
 			tmp = r16[HL];
@@ -145,7 +148,7 @@ void execute(){
 		switch(command & 0x7){
 			// inc r8
 			case 0x4:
-			// no flag set for r16, only for r8
+			clear_flag(SUB_FLAG);				
 			if(CN3 == 6){
 				init_r16();
 				r16[HL]++;
