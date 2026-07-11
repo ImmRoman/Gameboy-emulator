@@ -14,20 +14,24 @@ uint8_t V[0xF];
 uint16_t r16[0x4];
 extern enum r8_t;
 extern enum r16_t;
+extern enum flags;
 void init_r16();
 void commit_r16();
 
 int line_bool = 1; //global variable for line printer
-typedef enum{
-	Z_FLAG = 0x80,
-	SUB_FLAG = 0x40,
-	H_FLAG = 0x20,
-	C_FLAG = 0x10
-}flags;
 
 void set_flag(uint8_t FLAG){
 	V[F] |= FLAG; 
 }
+
+void clear_flag(uint8_t FLAG){
+	V[F] &= ~FLAG;
+}
+
+uint8_t get_flag(uint8_t FLAG){
+	return (V[F] & FLAG) != 0;
+}
+
 void execute(){
 	ASSERT(PC < sizeof(memory));
 	
@@ -148,7 +152,7 @@ void execute(){
 				commit_r16();
 				break;
 			}
-			if(V[CN3] == 0xFF){V[F] |= 0x8;}
+			if(V[CN3] == 0xFF){set_flag(C_FLAG);}
 			V[CN3] ++;
 			if(V[CN3] == 0x00){set_flag(Z_FLAG);}
 			break;
@@ -156,7 +160,7 @@ void execute(){
 			case 0x5:
 			// no flag set for r16, only for r8
 			if(CN3 == 6){init_r16();r16[HL]--;commit_r16();break;}
-			if(V[CN3]==0){V[F]|=0x08;}
+			if(V[CN3]==0){set_flag(Z_FLAG);}
 			V[CN3] --;
 			if(V[CN3] == 0x00){set_flag(Z_FLAG);}
 			break;
@@ -178,7 +182,8 @@ void execute(){
 						set_flag(C_FLAG);
 					}
 					V[A] = V[A] << 1;
-					V[A] = V[A] | ((V[F] & 0x8) >> 3);
+					V[A] = V[A] | get_flag(C_FLAG);
+
 					break;
 
 				case 0x1:
@@ -187,35 +192,34 @@ void execute(){
 					set_flag(C_FLAG);
 				}
 				V[A] = V[A] >> 1;
-				V[A] = V[A] | ((V[F] & 0x8) << 4);
+				V[A] = V[A] | (get_flag(C_FLAG) << 7);
 				break;
 
 				case 0x2:
 				//rla
 				if(V[A] > 0x7F){
 					V[A] = V[A] << 1;
-					V[A] |= ((V[F] & 0x8) >> 3);
+					V[A] |= get_flag(C_FLAG);
 					
 					break;
 				}
 				V[A] = V[A] << 1;
-				V[A] |= ((V[F] & 0x8) >> 3);
+				V[A] |= get_flag(C_FLAG);
 				// set carry flag to 0
-				V[F] &= 0xF7;
+				clear_flag(C_FLAG);
 				break;
 				
 				case 0x3:
 				//rra
 				if(V[A] & 0x01){
 					V[A] = V[A] >> 1;
-					V[A] |= ((V[F] & 0x8) << 4);
+					V[A] |= get_flag(C_FLAG) << 7;
 					set_flag(C_FLAG);
 					break;
 				}
 				V[A] = V[A] >> 1;
-				V[A] |= ((V[F] & 0x8) << 4);
-				//set carry flag to 0
-				V[F] &= 0xF7;
+				V[A] |= get_flag(C_FLAG) << 7;
+				clear_flag(C_FLAG);
 				break;
 				
 				case 0x4:

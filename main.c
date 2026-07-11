@@ -4,6 +4,7 @@
 #include "cpu.h"
 extern uint8_t V[0xF];
 extern uint8_t memory[0xFFFF];
+extern enum flags;
 void test_b0_N11();
 void test_b0_N3();
 void test_b0_N2();
@@ -133,7 +134,7 @@ void test_b0_N7(){
 	PC = 0x0;
 	execute();
 	ASSERT(V[A] == 0x21);
-	ASSERT(V[F] == 0x08);
+	ASSERT(V[F] == C_FLAG);
 }
 
 void test_b0_NF(){
@@ -142,12 +143,12 @@ void test_b0_NF(){
 	PC = 0x0;
 	execute();
 	ASSERT(V[A] == 0x80);
-	ASSERT(V[F] == 0x08);
+	ASSERT(V[F] == C_FLAG);
 }
 void test_b0_17(){
 	memory[0x0]= 0x17;
 	V[A] = 0x01;
-	V[F] = 0x08;
+	V[F] = C_FLAG;
 	PC = 0x0;
 	execute();
 	ASSERT(V[A] == 0x03);
@@ -157,11 +158,11 @@ void test_b0_17(){
 void test_b0_1F(){
 	memory[0x0]= 0x1F;
 	V[A] = 0x01;
-	V[F] = 0x08;
+	V[F] = C_FLAG;
 	PC = 0x0;
 	execute();
 	ASSERT(V[A] == 0x80);
-	ASSERT(V[F] == 0x08);
+	ASSERT(V[F] == C_FLAG);
 }
 void test_add_hl_flag(){
 	memory[0x0] = 0x9;

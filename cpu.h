@@ -36,6 +36,14 @@
 
     typedef enum
     {B,C,D,E,H,L,F,A} r8_t;
+
+    typedef enum{
+        Z_FLAG = 0x80,
+        SUB_FLAG = 0x40,
+        H_FLAG = 0x20,
+        C_FLAG = 0x10
+    }flags;
+
     void execute();
     extern void p_registers();
 	extern void p_line();
