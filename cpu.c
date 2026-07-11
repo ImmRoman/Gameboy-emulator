@@ -116,6 +116,7 @@ void execute(){
 			clear_flag(SUB_FLAG);
 			if(CN == 3){SP++;break;}
 			init_r16();
+			if((r16[CN] & 0xFF00) == 0xFF00){set_flag(H_FLAG);}
 			r16[CN] ++;
 			commit_r16();
 			break;
@@ -125,6 +126,7 @@ void execute(){
 			set_flag(SUB_FLAG);
 			if(CN == 3){SP--;break;}
 			init_r16();
+			if((r16[CN] & 0xFF00) == 0x0000){set_flag(H_FLAG);}
 			r16[CN] --;
 			commit_r16();
 			break;
@@ -132,8 +134,13 @@ void execute(){
 			// add hl, r16
 			case 0x9:
 			clear_flag(SUB_FLAG);
-			if(CN == 3){SP += r16[HL];break;}
+			if(CN == 3){
+				if((SP & 0xFFF) + (r16[HL] & 0xFFF) > 0xFFF){set_flag(H_FLAG);}
+				SP += r16[HL];
+				break;
+			}
 			init_r16();
+			if((r16[HL] & 0xFFF) + (r16[CN] & 0xFFF) > 0xFFF){set_flag(H_FLAG);}
 			tmp = r16[HL];
 			r16[HL] += r16[CN];
 			if(r16[HL] < tmp) set_flag(C_FLAG);
@@ -151,19 +158,27 @@ void execute(){
 			clear_flag(SUB_FLAG);				
 			if(CN3 == 6){
 				init_r16();
+				if(r16[HL] & 0xFFF == 0xFFF){set_flag(H_FLAG);}
 				r16[HL]++;
 				commit_r16();
 				break;
 			}
 			if(V[CN3] == 0xFF){set_flag(C_FLAG);}
+			if(V[CN3] & 0xF == 0xF){set_flag(H_FLAG);}
 			V[CN3] ++;
 			if(V[CN3] == 0x00){set_flag(Z_FLAG);}
 			break;
 			// dec r8
 			case 0x5:
 			// no flag set for r16, only for r8
-			if(CN3 == 6){init_r16();r16[HL]--;commit_r16();break;}
+			if(CN3 == 6){init_r16();
+				if(r16[HL] & 0xFFF == 0x000){set_flag(H_FLAG);}
+				r16[HL]--;
+				commit_r16();
+				break;
+			}
 			if(V[CN3]==0){set_flag(Z_FLAG);}
+			if(V[CN3] & 0xF == 0x0){set_flag(H_FLAG);}
 			V[CN3] --;
 			if(V[CN3] == 0x00){set_flag(Z_FLAG);}
 			break;
