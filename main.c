@@ -4,7 +4,6 @@
 #include "cpu.h"
 extern uint8_t V[0xF];
 extern uint8_t memory[0xFFFF];
-extern enum flags;
 void test_b0_N11();
 void test_b0_N3();
 void test_b0_N2();
@@ -174,10 +173,46 @@ void test_add_hl_flag(){
 	execute();
 	ASSERT(V[F] & 0x10);
 	ASSERT(V[L] == 0x2);		
+}
+
+void test_daa_0x27_1(){
+	memory[0x0] = 0x27;
+	PC = 0x0;
+	V[A] = 0x6B;
+	execute();
+	ASSERT(V[A] == 0x71);
 
 }
 
-	int main(){
+
+void test_daa_0x27_2(){
+	memory[0x0] = 0x27;
+	PC = 0x0;
+	V[A] = 0xC4;
+	execute();
+	ASSERT(V[A] == 0x24);
+	ASSERT(V[F] & C_FLAG);
+}
+
+
+void test_daa_0x27_3(){
+	memory[0x0] = 0x27;
+	PC = 0x0;
+	V[A] = 0x11;
+	V[F] = H_FLAG;
+	execute();
+	ASSERT(V[A] == 0x17);
+}
+void test_daa_0x27_4(){
+	memory[0x0] = 0x27;
+	PC = 0x0;
+	V[A] = 0x0D;
+	V[F] = H_FLAG;
+	V[F] |= SUB_FLAG;
+	execute();
+	ASSERT(V[A] == 0x07);
+}
+int main(){
 		
 	test_b0_N6();
 	clean();
@@ -196,4 +231,13 @@ void test_add_hl_flag(){
 	test_b0_1F();
 	clean();
 	test_add_hl_flag();
+	clean();
+	test_daa_0x27_1();
+	clean();
+	test_daa_0x27_2();
+	clean();
+	test_daa_0x27_3();
+	clean();
+	test_daa_0x27_4();
+	return 0;
 }

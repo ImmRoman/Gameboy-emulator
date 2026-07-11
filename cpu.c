@@ -12,9 +12,6 @@ uint8_t V[0xF];
 	commit copies r16 changes into the correspective V[0xF]
 */
 uint16_t r16[0x4];
-extern enum r8_t;
-extern enum r16_t;
-extern enum flags;
 void init_r16();
 void commit_r16();
 
@@ -158,13 +155,13 @@ void execute(){
 			clear_flag(SUB_FLAG);				
 			if(CN3 == 6){
 				init_r16();
-				if(r16[HL] & 0xFFF == 0xFFF){set_flag(H_FLAG);}
+				if((r16[HL] & 0xFFF) == 0xFFF){set_flag(H_FLAG);}
 				r16[HL]++;
 				commit_r16();
 				break;
 			}
 			if(V[CN3] == 0xFF){set_flag(C_FLAG);}
-			if(V[CN3] & 0xF == 0xF){set_flag(H_FLAG);}
+			if((V[CN3] & 0xF) == 0xF){set_flag(H_FLAG);}
 			V[CN3] ++;
 			if(V[CN3] == 0x00){set_flag(Z_FLAG);}
 			break;
@@ -172,13 +169,13 @@ void execute(){
 			case 0x5:
 			// no flag set for r16, only for r8
 			if(CN3 == 6){init_r16();
-				if(r16[HL] & 0xFFF == 0x000){set_flag(H_FLAG);}
+				if((r16[HL] & 0xFFF) == 0x000){set_flag(H_FLAG);}
 				r16[HL]--;
 				commit_r16();
 				break;
 			}
 			if(V[CN3]==0){set_flag(Z_FLAG);}
-			if(V[CN3] & 0xF == 0x0){set_flag(H_FLAG);}
+			if((V[CN3] & 0xF) == 0x0){set_flag(H_FLAG);}
 			V[CN3] --;
 			if(V[CN3] == 0x00){set_flag(Z_FLAG);}
 			break;
@@ -242,7 +239,29 @@ void execute(){
 				
 				case 0x4:
 				// daa
-
+				tmp = V[A];
+				if(get_flag(SUB_FLAG)){
+					if(get_flag(H_FLAG)){
+						V[A] -= 0x6;
+					}
+					if(get_flag(C_FLAG)){
+						V[A] -= 0x60;
+					}
+					//MAY BE WRONG, CHECK IF IT'S CORRECT TO COMMENT
+					// if(V[A] > tmp){set_flag(C_FLAG);}
+				}
+				else{
+					if(get_flag(H_FLAG) || (V[A] & 0xF) > 0x9){
+						V[A] += 0x6;
+					}
+					if(get_flag(C_FLAG) || V[A] > 0x9F){
+						V[A] += 0x60;
+					}
+					if(V[A] < tmp){set_flag(C_FLAG);}
+				}
+				if(V[A] == 0x00){set_flag(Z_FLAG);}
+				else{clear_flag(Z_FLAG);}
+				clear_flag(H_FLAG);
 				break;
 
 			default:
