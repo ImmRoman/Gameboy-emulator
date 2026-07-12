@@ -28,6 +28,16 @@ void clear_flag(uint8_t FLAG){
 uint8_t get_flag(uint8_t FLAG){
 	return (V[F] & FLAG) != 0;
 }
+uint8_t cond_jump(uint8_t NN){
+	uint8_t Z = get_flag(Z_FLAG);
+	uint8_t C = get_flag(C_FLAG);
+	if(NN==0) return !Z;
+	if(NN==1) return Z;
+	if(NN==2) return !C;
+	if(NN==3) return C;
+	printf("WARNING passed to cond_jump a NN != {0..3}");
+	return -1;	
+}
 
 void execute(){
 	ASSERT(PC < sizeof(memory));
@@ -186,8 +196,32 @@ void execute(){
 			PC++;
 			break;
 			
-
-			//rotation
+			//jumps
+			case 0x0:
+			if(CN3 == 0x2){
+				//stop
+				return;
+			}
+			// Bring PC to next instruction, ready if condition is false
+			PC+=2;
+			
+			if(CN3 == 0x3){
+				//jr imm8
+				PC += (int8_t)imm8;
+				return;
+			}
+			else{
+				// minus 0x4 to remove the MSB of CN3 
+				if(cond_jump(CN3 - 0x4)){
+				//I don't want to increase PC again at the end of the switch
+					PC += (int8_t)imm8;
+					return;
+				}
+				//Need this return so we don't PC+=3 skipping an instruction
+				return;
+			}
+			break;
+			//rotations
 			case 0x7:
 			switch (CN3)
 			{
@@ -263,7 +297,24 @@ void execute(){
 				else{clear_flag(Z_FLAG);}
 				clear_flag(H_FLAG);
 				break;
-
+			
+			case 0x5:
+			// cpl
+			set_flag(SUB_FLAG);
+			set_flag(H_FLAG);
+			V[A] = ~V[A];
+			break;
+			case 0x6:
+			//scf
+			set_flag(C_FLAG);
+			clear_flag(SUB_FLAG);
+			clear_flag(H_FLAG);
+			break;
+			case 0x7:
+			//ccf
+			if(get_flag(C_FLAG))clear_flag(C_FLAG);else set_flag(C_FLAG);
+			clear_flag(SUB_FLAG);
+			clear_flag(H_FLAG);	
 			default:
 				break;
 			}

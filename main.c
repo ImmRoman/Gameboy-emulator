@@ -212,6 +212,31 @@ void test_daa_0x27_4(){
 	execute();
 	ASSERT(V[A] == 0x07);
 }
+void test_0x2F(){
+	memory[0x0] = 0x2F;
+	PC = 0x0;
+	V[A] = 0xF8;
+	execute();
+	ASSERT(V[A] == 0x07);
+}
+
+void test_0x28(){
+	memory[0x0] = 0x28;
+	memory[0x1] = 0x74;
+	PC = 0x0;
+	V[F] = Z_FLAG;
+	execute();
+	ASSERT(PC == 0x74+2);
+}
+
+void test_0x38(){
+	memory[0x0] = 0x38;
+	memory[0x1] = 0x74;
+	PC = 0x0;
+	V[F] = C_FLAG;
+	execute();
+	ASSERT(PC == 0x74+2);
+}
 int main(){
 		
 	test_b0_N6();
@@ -239,5 +264,11 @@ int main(){
 	test_daa_0x27_3();
 	clean();
 	test_daa_0x27_4();
+	clean();
+	test_0x2F();
+	clean();
+	test_0x28();
+	clean();
+	test_0x38();
 	return 0;
 }
