@@ -237,6 +237,40 @@ void test_0x38(){
 	execute();
 	ASSERT(PC == 0x74+2);
 }
+
+
+void test_ld_r8_r8_1(){
+	//Test normal registers
+	memory[0x0] = 0x42;
+	PC = 0x0;
+	V[B] = 0x40;
+	V[D] = 0x70;
+	execute();
+	ASSERT(V[B] == 0x70);
+}
+
+void test_ld_r8_r8_2(){
+	// Ld V[C], (HL)
+	memory[0x0] = 0x4E;
+	PC = 0x0;
+	V[C] = 0x10;
+	V[H] = 0x50;
+	V[L] = 0x70;
+	memory[0x5070] = 0x74;
+	execute();
+	ASSERT(V[C] == 0x74);
+}
+
+void test_ld_r8_r8_3(){
+	// Ld (HL),D
+	memory[0x0] = 0x72;
+	PC = 0x0;
+	V[D] = 0x33;
+	V[H] = 0x50;
+	V[L] = 0x70;
+	execute();
+	ASSERT(memory[0x5070]==0x33);
+}
 int main(){
 		
 	test_b0_N6();
@@ -270,5 +304,11 @@ int main(){
 	test_0x28();
 	clean();
 	test_0x38();
+	clean();
+	test_ld_r8_r8_1();
+	clean();
+	test_ld_r8_r8_2();
+	clean();
+	test_ld_r8_r8_3();
 	return 0;
 }

@@ -51,13 +51,15 @@ void execute(){
 	
 	if(command == 0){PC+=1;return;}
 
-	switch(command >> 6){
-		//BLOCK 1 pandocs
-		case 0x0:
 		// Central Nibble 
-		uint8_t CN = (command & 0x30) >> 4;
-		uint8_t CN3 = (command & 0x38) >> 3;
-		uint16_t addr;
+	uint8_t CN = (command & 0x30) >> 4;
+	// Central and right 3 digit Nibble
+	uint8_t CN3 = (command & 0x38) >> 3;
+	uint8_t RN3 = (command & 0x07);
+	uint16_t addr;
+	switch(command >> 6){
+		//BLOCK 0 pandocs
+		case 0x0:
 		/*
 		-----------------
 		Last byte switch
@@ -320,18 +322,25 @@ void execute(){
 			}
 			break;
 		}
-
-		// BLOCK 2 pandocs
+		break;
+		// BLOCK 1 pandocs
 		case 0x1:
+		// halt
+		if(command == 0x76){return;}
 
+		//ld r8,r8 Implementazione un po' da sborone ma non mi interessa ahahah
+		init_r16();
+		uint8_t* dest = CN3 == 6? &memory[r16[HL]] : &V[CN3];
+		uint8_t* src = RN3 == 6? &memory[r16[HL]] : &V[RN3];
+		*dest = *src;
 		break;
 		
-		// BLOCK 3
+		// BLOCK 2
 		case 0x2:
 		
 		break;
 		
-		// BLOCK 4
+		// BLOCK 3
 		case 0x3:
 		
 		break;
