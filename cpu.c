@@ -25,6 +25,10 @@ void clear_flag(uint8_t FLAG){
 	V[F] &= ~FLAG;
 }
 
+void conditionated_flag(uint8_t condition,uint8_t FLAG){
+	if(condition)set_flag(FLAG);else clear_flag(FLAG);
+}
+
 uint8_t get_flag(uint8_t FLAG){
 	return (V[F] & FLAG) != 0;
 }
@@ -45,6 +49,10 @@ void execute(){
 	uint8_t command = memory[PC];
 	uint8_t imm8 = memory[PC + 1];
 	uint16_t imm16 = memory[PC + 2];
+
+	//tmps for temporary storage or to reduce array accesses
+	uint8_t operand;
+	uint8_t c_flag;
 	int tmp;
 	
 	imm16 = (imm16 << 8) + memory[PC + 1];
@@ -337,6 +345,88 @@ void execute(){
 		
 		// BLOCK 2
 		case 0x2:
+		switch (CN3)
+		{
+		case 0x0:
+			//add add a, r8
+			clear_flag(SUB_FLAG);
+			if(RN3 == 0x6){
+				operand = memory[r16[HL]];
+				init_r16();
+				conditionated_flag(V[A]+operand<V[A],C_FLAG);
+				conditionated_flag((V[A]&0x0F)+(operand&0x0F) > 0x0F,H_FLAG);
+				V[A] += memory[r16[HL]];
+				conditionated_flag(V[A]==0,Z_FLAG);
+				commit_r16();
+				break;
+			}
+			conditionated_flag(V[A]+V[RN3]<V[A],C_FLAG);
+			conditionated_flag((V[A]&0x0F)+(V[RN3]&0x0F) > 0x0F,H_FLAG);
+			V[A]+=V[RN3];
+			conditionated_flag(V[A]==0,Z_FLAG);
+			break;
+
+		case 0x1:
+			//adc a, r8
+			clear_flag(SUB_FLAG);
+			c_flag = get_flag(C_FLAG);
+			if(RN3 == 0x6){
+				operand = memory[r16[HL]];
+				init_r16();
+				conditionated_flag(V[A] + operand + c_flag < V[A],C_FLAG);
+				conditionated_flag((V[A]&0x0F)+(operand&0x0F)+c_flag > 0x0F,H_FLAG);
+				V[A] += (operand + c_flag);
+				conditionated_flag(V[A]==0,Z_FLAG);
+				commit_r16();
+				break;
+			}
+			conditionated_flag(V[A] + V[RN3] + c_flag < V[A],C_FLAG);
+			conditionated_flag((V[A]&0x0F) + (V[RN3]&0x0F) + c_flag> 0x0F,H_FLAG);
+			V[A]+=V[RN3] + c_flag;
+			conditionated_flag(V[A]==0,Z_FLAG);
+			break;
+
+		case 0x2:
+			//sub a, r8
+			set_flag(SUB_FLAG);
+			if(RN3 == 0x6){
+				operand = memory[r16[HL]];
+				init_r16();
+				conditionated_flag(V[A] < operand,C_FLAG);
+				conditionated_flag((V[A]&0x0F)<(operand&0x0F),H_FLAG);
+				V[A] -= memory[r16[HL]];
+				conditionated_flag(V[A]==0,Z_FLAG);
+				commit_r16();
+				break;
+			}
+			conditionated_flag(V[A] < V[RN3],C_FLAG);
+			conditionated_flag((V[A]&0xF) < (V[RN3]&0xF),H_FLAG);
+			V[A]-=V[RN3];
+			conditionated_flag(V[A]==0,Z_FLAG);
+		break;
+
+		case 0x3:
+			//sbc a,r8
+			set_flag(SUB_FLAG);
+			c_flag = get_flag(C_FLAG);
+			if(RN3 == 0x6){
+				operand = memory[r16[HL]];
+				init_r16();
+				conditionated_flag(V[A] < operand + c_flag,C_FLAG);
+				conditionated_flag((V[A]&0x0F) < (operand&0x0F) + c_flag ,H_FLAG);
+				V[A] -= (memory[r16[HL]] + c_flag);
+				conditionated_flag(V[A]==0,Z_FLAG);
+				commit_r16();
+				break;
+			}
+			conditionated_flag(V[A] < V[RN3] + c_flag,C_FLAG);
+			conditionated_flag((V[A]&0x0F) < (V[RN3]&0x0F) + c_flag,H_FLAG);
+			V[A] -= (V[RN3] + c_flag);
+			conditionated_flag(V[A]==0,Z_FLAG);
+		break;
+		default:
+			break;
+		}
 		
 		break;
 		
