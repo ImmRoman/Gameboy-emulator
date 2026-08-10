@@ -25,7 +25,7 @@ void clear_flag(uint8_t FLAG){
 	V[F] &= ~FLAG;
 }
 
-void conditionated_flag(uint8_t condition,uint8_t FLAG){
+void cond_flag(uint8_t condition,uint8_t FLAG){
 	if(condition)set_flag(FLAG);else clear_flag(FLAG);
 }
 
@@ -41,6 +41,36 @@ uint8_t cond_jump(uint8_t NN){
 	if(NN==3) return C;
 	printf("WARNING passed to cond_jump a NN != {0..3}");
 	return -1;	
+}
+
+uint8_t get_cond(uint8_t NN){
+	switch (NN)
+	{
+	case 0x0:
+		return !get_flag(Z_FLAG);
+	case 0x1:
+		return get_flag(Z_FLAG);
+	case 0x2:
+		return !get_flag(C_FLAG);
+	case 0x3:
+		return get_flag(C_FLAG);
+	default:
+		break;
+	}
+
+	printf("get_cond got an invalid NN");
+	abort();
+}
+void push16(){
+	SP -= 2;
+	memory[SP] = PC & 0xFF;
+	memory[SP + 1] = (PC>>8) & 0xFF;
+}
+void pop16(){
+	uint16_t lo = memory[SP];
+	uint16_t hi = memory[SP + 1];
+	PC = (hi << 8) + lo;
+	SP+=2;
 }
 
 void execute(){
@@ -64,6 +94,7 @@ void execute(){
 	// Central and right 3 digit Nibble
 	uint8_t CN3 = (command & 0x38) >> 3;
 	uint8_t RN3 = (command & 0x07);
+	uint8_t LN3 = (command & 0xE0) >> 5;
 	uint16_t addr;
 	switch(command >> 6){
 		//BLOCK 0 pandocs
@@ -353,16 +384,16 @@ void execute(){
 			if(RN3 == 0x6){
 				init_r16();
 				operand = memory[r16[HL]];
-				conditionated_flag(V[A]+operand<V[A],C_FLAG);
-				conditionated_flag((V[A]&0x0F)+(operand&0x0F) > 0x0F,H_FLAG);
+				cond_flag(V[A]+operand<V[A],C_FLAG);
+				cond_flag((V[A]&0x0F)+(operand&0x0F) > 0x0F,H_FLAG);
 				V[A] += memory[r16[HL]];
-				conditionated_flag(V[A]==0,Z_FLAG);
+				cond_flag(V[A]==0,Z_FLAG);
 				break;
 			}
-			conditionated_flag(V[A]+V[RN3]<V[A],C_FLAG);
-			conditionated_flag((V[A]&0x0F)+(V[RN3]&0x0F) > 0x0F,H_FLAG);
+			cond_flag(V[A]+V[RN3]<V[A],C_FLAG);
+			cond_flag((V[A]&0x0F)+(V[RN3]&0x0F) > 0x0F,H_FLAG);
 			V[A]+=V[RN3];
-			conditionated_flag(V[A]==0,Z_FLAG);
+			cond_flag(V[A]==0,Z_FLAG);
 			break;
 
 		case 0x1:
@@ -372,16 +403,16 @@ void execute(){
 			if(RN3 == 0x6){
 				init_r16();
 				operand = memory[r16[HL]];
-				conditionated_flag(V[A] + operand + c_flag < V[A],C_FLAG);
-				conditionated_flag((V[A]&0x0F)+(operand&0x0F)+c_flag > 0x0F,H_FLAG);
+				cond_flag(V[A] + operand + c_flag < V[A],C_FLAG);
+				cond_flag((V[A]&0x0F)+(operand&0x0F)+c_flag > 0x0F,H_FLAG);
 				V[A] += (operand + c_flag);
-				conditionated_flag(V[A]==0,Z_FLAG);
+				cond_flag(V[A]==0,Z_FLAG);
 				break;
 			}
-			conditionated_flag(V[A] + V[RN3] + c_flag < V[A],C_FLAG);
-			conditionated_flag((V[A]&0x0F) + (V[RN3]&0x0F) + c_flag> 0x0F,H_FLAG);
+			cond_flag(V[A] + V[RN3] + c_flag < V[A],C_FLAG);
+			cond_flag((V[A]&0x0F) + (V[RN3]&0x0F) + c_flag> 0x0F,H_FLAG);
 			V[A]+=V[RN3] + c_flag;
-			conditionated_flag(V[A]==0,Z_FLAG);
+			cond_flag(V[A]==0,Z_FLAG);
 			break;
 
 		case 0x2:
@@ -390,16 +421,16 @@ void execute(){
 			if(RN3 == 0x6){
 				init_r16();
 				operand = memory[r16[HL]];
-				conditionated_flag(V[A] < operand,C_FLAG);
-				conditionated_flag((V[A]&0x0F)<(operand&0x0F),H_FLAG);
+				cond_flag(V[A] < operand,C_FLAG);
+				cond_flag((V[A]&0x0F)<(operand&0x0F),H_FLAG);
 				V[A] -= memory[r16[HL]];
-				conditionated_flag(V[A]==0,Z_FLAG);
+				cond_flag(V[A]==0,Z_FLAG);
 				break;
 			}
-			conditionated_flag(V[A] < V[RN3],C_FLAG);
-			conditionated_flag((V[A]&0xF) < (V[RN3]&0xF),H_FLAG);
+			cond_flag(V[A] < V[RN3],C_FLAG);
+			cond_flag((V[A]&0xF) < (V[RN3]&0xF),H_FLAG);
 			V[A]-=V[RN3];
-			conditionated_flag(V[A]==0,Z_FLAG);
+			cond_flag(V[A]==0,Z_FLAG);
 		break;
 
 		case 0x3:
@@ -409,16 +440,16 @@ void execute(){
 			if(RN3 == 0x6){
 				init_r16();
 				operand = memory[r16[HL]];
-				conditionated_flag(V[A] < operand + c_flag,C_FLAG);
-				conditionated_flag((V[A]&0x0F) < (operand&0x0F) + c_flag ,H_FLAG);
+				cond_flag(V[A] < operand + c_flag,C_FLAG);
+				cond_flag((V[A]&0x0F) < (operand&0x0F) + c_flag ,H_FLAG);
 				V[A] -= (memory[r16[HL]] + c_flag);
-				conditionated_flag(V[A]==0,Z_FLAG);
+				cond_flag(V[A]==0,Z_FLAG);
 				break;
 			}
-			conditionated_flag(V[A] < V[RN3] + c_flag,C_FLAG);
-			conditionated_flag((V[A]&0x0F) < (V[RN3]&0x0F) + c_flag,H_FLAG);
+			cond_flag(V[A] < V[RN3] + c_flag,C_FLAG);
+			cond_flag((V[A]&0x0F) < (V[RN3]&0x0F) + c_flag,H_FLAG);
 			V[A] -= (V[RN3] + c_flag);
-			conditionated_flag(V[A]==0,Z_FLAG);
+			cond_flag(V[A]==0,Z_FLAG);
 		break;
 		case 0x4:
 			//and a, r8
@@ -428,11 +459,11 @@ void execute(){
 			if(RN3 ==6){
 				init_r16();
 				V[A] = V[A] & memory[r16[HL]];
-				conditionated_flag(V[A],Z_FLAG);
+				cond_flag(V[A],Z_FLAG);
 				break;
 			}
 			V[A] = V[A] & V[RN3];
-			conditionated_flag(V[A],Z_FLAG);
+			cond_flag(V[A],Z_FLAG);
 		break;
 
 		case 0x5:
@@ -443,11 +474,11 @@ void execute(){
 			if(RN3 ==6){
 				init_r16();
 				V[A] = V[A] ^ memory[r16[HL]];
-				conditionated_flag(V[A],Z_FLAG);
+				cond_flag(V[A],Z_FLAG);
 				break;
 			}
 			V[A] = V[A] ^ V[RN3];
-			conditionated_flag(V[A],Z_FLAG);
+			cond_flag(V[A],Z_FLAG);
 		break;
 		
 		case 0x6:
@@ -458,11 +489,11 @@ void execute(){
 			if(RN3 ==6){
 				init_r16();
 				V[A] = V[A] | memory[r16[HL]];
-				conditionated_flag(V[A],Z_FLAG);
+				cond_flag(V[A],Z_FLAG);
 				break;
 			}
 			V[A] = V[A] | V[RN3];
-			conditionated_flag(V[A],Z_FLAG);
+			cond_flag(V[A],Z_FLAG);
 		break;
 		
 		case 0x7:
@@ -471,14 +502,14 @@ void execute(){
 			if(RN3 ==6){
 				init_r16();
 				operand = memory[r16[HL]];
-				conditionated_flag(V[A] < operand,C_FLAG);
-				conditionated_flag((V[A] & 0x0F) < (operand & 0xF),H_FLAG);
-				conditionated_flag(V[A] - operand,Z_FLAG);
+				cond_flag(V[A] < operand,C_FLAG);
+				cond_flag((V[A] & 0x0F) < (operand & 0xF),H_FLAG);
+				cond_flag(V[A] - operand,Z_FLAG);
 				break;
 			}
-			conditionated_flag(V[A] < operand,C_FLAG);
-			conditionated_flag((V[A] & 0x0F) < (operand & 0xF),H_FLAG);
-			conditionated_flag(V[A] - operand,Z_FLAG);
+			cond_flag(V[A] < operand,C_FLAG);
+			cond_flag((V[A] & 0x0F) < (operand & 0xF),H_FLAG);
+			cond_flag(V[A] - operand,Z_FLAG);
 		break;
 		default:
 			break;
@@ -563,10 +594,75 @@ void execute(){
 			}
 			// salta l'immediato
 			PC ++;
-		}		
+		}
+		
+		/*------RET--------*/
+		if(LN3 == 3 &&  RN3 == 0){
+			// ret cond
+			if(get_cond(CN3 & 0x06)){
+				pop16();
+				return;
+			}
+
+		}
+		if(command == 0xC9){
+			pop16();
+			return;
+		}
+		if(command == 0xD9){
+			pop16();
+			//TODO interrupt handling
+			return;
+		}
+		
+
+		/*------JP--------*/
+		if(LN3 == 6 && RN3 == 2){
+			// jp cond, imm16
+			if(get_cond(CN3)){
+				PC = imm16;
+				return;
+			}
+			//jump over the imm16
+			PC+=2;
+			break;
+		}
+		// jp imm16
+		if( command == 0xC3 ){
+			PC = imm16;
+			return;
+		}
+		// jp hl
+		if( command == 0xE9 ){
+			init_r16();
+			PC = r16[HL];
+			return;
+		}
+
+		/*------CALL--------*/
+		if(LN3 == 0x6 && RN3 == 0x4){
+			if(get_cond(CN3)){
+				push16();
+				PC = imm16;
+				return;
+			}
+			// if not executed you have to jump over the imm16
+			PC+=2;
+			break;
+		}
+		if(command == 0xCD){
+			push16();
+			PC = imm16;
+			return;
+		}
+		// rst tgt3
+		if(RN3 == 0x7){
+			// TODO AFTER YOU REALIZE PAGES
+		}
 		break;
 
 	}
+
 	PC++;
 	}
 
