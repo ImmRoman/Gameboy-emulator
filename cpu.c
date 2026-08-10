@@ -488,7 +488,82 @@ void execute(){
 		
 		// BLOCK 3
 		case 0x3:
-		
+		if(RN3 == 0x6){
+			switch (CN3)
+			{
+			case 0x0:
+				// add a, imm8
+				clear_flag(SUB_FLAG);
+				cond_flag(V[A] > V[A] + imm8, C_FLAG);
+				cond_flag((V[A] & 0x0F)+(imm8 & 0x0F) > 0xF, H_FLAG);
+				V[A] += imm8;
+				cond_flag(V[A] == 0,Z_FLAG);
+				break;
+			case 0x1:
+				// adc a,imm8
+				c_flag =  get_flag(C_FLAG);
+				clear_flag(SUB_FLAG);
+				cond_flag(V[A]  > V[A] + c_flag + imm8, C_FLAG);
+				cond_flag((V[A] & 0x0F)+(imm8 & 0x0F) + c_flag > 0xF, H_FLAG);
+				V[A] += imm8;
+				cond_flag(V[A] == 0,Z_FLAG);
+				break;
+			break;
+			case 0x2:
+				//sub a,imm8
+				set_flag(SUB_FLAG);
+				cond_flag(V[A] <  imm8, C_FLAG);
+				cond_flag((V[A] & 0x0F)<(imm8 & 0x0F), H_FLAG);
+				V[A] -= imm8;
+				cond_flag(V[A] == 0,Z_FLAG);
+				break;
+			case 0x3:
+				//sbc a,imm8
+				c_flag = get_flag(C_FLAG);
+				set_flag(SUB_FLAG);
+				cond_flag(V[A] <  imm8 + c_flag, C_FLAG);
+				cond_flag((V[A] & 0x0F)<(imm8 & 0x0F) + c_flag, H_FLAG);
+				V[A] -= (imm8 + c_flag);
+				cond_flag(V[A] == 0,Z_FLAG);
+				break;
+			case 0x4:
+				//and a,imm8
+				clear_flag(SUB_FLAG);
+				set_flag(H_FLAG);
+				clear_flag(C_FLAG);
+				V[A] = V[A] & imm8;
+				cond_flag(V[A] == 0,Z_FLAG);
+				break;
+			
+			case 0x5:
+				//xor a,imm8
+				clear_flag(SUB_FLAG);
+				clear_flag(C_FLAG);
+				clear_flag(H_FLAG);
+				V[A] = V[A] ^ imm8;
+				cond_flag(V[A] == 0,Z_FLAG);
+				break;
+			case 0x6:
+				//or a,imm8
+				clear_flag(SUB_FLAG);
+				clear_flag(C_FLAG);
+				clear_flag(H_FLAG);
+				V[A] = V[A] | imm8;
+				cond_flag(V[A] == 0,Z_FLAG);
+				break;
+			case 0x7:
+				//cp a,imm8
+				set_flag(SUB_FLAG);
+				cond_flag((V[A] - imm8) == 0,Z_FLAG);
+				cond_flag(V[A] < imm8,C_FLAG);
+				cond_flag((V[A] & 0x0F) < (imm8 & 0x0F));
+				break;
+			default:
+				break;
+			}
+			// salta l'immediato
+			PC ++;
+		}		
 		break;
 
 	}
