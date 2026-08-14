@@ -640,6 +640,7 @@ void execute(){
 		}
 
 		/*------CALL--------*/
+		// call cond, imm16
 		if(LN3 == 0x6 && RN3 == 0x4){
 			if(get_cond(CN3)){
 				push16();
@@ -650,6 +651,7 @@ void execute(){
 			PC+=2;
 			break;
 		}
+		// call imm16
 		if(command == 0xCD){
 			push16();
 			PC = imm16;
@@ -659,8 +661,33 @@ void execute(){
 		if(RN3 == 0x7){
 			// TODO AFTER YOU REALIZE PAGES
 		}
-		break;
 
+		/*------POP / PUSH--------*/
+		break;
+		// pop r16stk
+		if(command & 0x0F == 0x1){
+			init_r16();
+			// reuse the global u16 variable addr to store the value to pop from the stack
+			addr = memory[SP] << 8 + memory[SP + 1];
+			// extract the Nibble that chooses the two registers to pop into
+			tmp = (command & 0x18) >> 4;
+			SP += 2;
+			r16[tmp] = addr;
+			commit_r16();
+		}
+		// push r16stk
+		if(command & 0x0F == 0x5){
+			init_r16();
+			// extract the Nibble that chooses the two registers to pop into
+			tmp = (command & 0x18) >> 4;
+			// reuse the global u16 variable addr to store the value to pop from the stack
+			addr = r16[tmp];
+
+			memory[SP - 1] = addr >> 8;
+			memory[SP - 2] = addr ; // memory is u8.
+			SP -= 2;
+			commit_r16();
+		}
 	}
 
 	PC++;
@@ -674,10 +701,13 @@ void init_r16(){
 }
 
 void commit_r16(){
-	for(int i = 0; i < 3 ; i++){
+	for(int i = 0; i < 2 ; i++){
 		V[2*i] = r16[i] >> 8;
 		V[2*i + 1] = r16[i] & 0xFF;
 	}
+	// A and F are inverted in the enum to follow the r8 definition in the pandocs.
+	V[A] = r16[3] >> 8;
+	V[F] = r16[3] & 0xFF;
 }
 
 void p_registers(){

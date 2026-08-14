@@ -32,7 +32,7 @@
     extern uint8_t V[0xF];
     extern uint16_t r16[0x4];
     typedef enum
-    {BC,DE,HL,SP_} r16_t;
+    {BC,DE,HL,AF} r16_t;
 
     typedef enum
     {B,C,D,E,H,L,F,A} r8_t;
