@@ -716,7 +716,36 @@ void execute(){
 		if(command == 0xFA){
 			V[A] = memory[imm16] ;
 		}
+
+		/*---------- SP operations ------------*/
+		// add sp, imm8
+		if(command == 0xE8){
+			clear_flag(SUB_FLAG);
+			clear_flag(Z_FLAG);
+			cond_flag(SP + (int8_t)imm8 < SP,C_FLAG);
+			cond_flag((SP & 0xF) + ((int8_t)imm8 & 0xF) > 0xF,H_FLAG);
+			SP += (int8_t)imm8;
+		}
+
+		// ld hl, sp + imm8	
+		if(command == 0xF8){
+			clear_flag(SUB_FLAG);
+			clear_flag(Z_FLAG);
+			cond_flag(SP + (int8_t)imm8 < SP,C_FLAG);
+			cond_flag((SP & 0xF) + ((int8_t)imm8 & 0xF) > 0xF,H_FLAG);
+			SP += (uint8_t) imm8;
+			init_r16();
+			r16[HL] = SP;
+			commit_r16();
+		}
 		
+		// ld sp, hl
+		if(command == 0xF9){
+			init_r16();
+			SP = r16[HL];
+		}
+
+		//TODO di ei
 	}
 
 	PC++;
