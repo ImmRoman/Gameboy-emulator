@@ -688,6 +688,35 @@ void execute(){
 			SP -= 2;
 			commit_r16();
 		}
+
+		/*-------------LD / LDH-----------------*/
+		// ldh [c], a
+		if(command == 0xE2){
+			memory[0xFF00 + V[C]] = V[A];
+		}
+		// ldh a, [c]
+		if(command == 0xE2){
+			V[A] = memory[0xFF00 + V[C]];
+		}
+
+		// ldh [imm8], a
+		if(command == 0xE0){
+			memory[0xFF00 + imm8] = V[A];
+		}
+		// ldh a, [imm8]
+		if(command == 0xF0){
+			V[A] = memory[0xFF00 + imm8] ;
+		}
+		
+		// ld [imm16], a
+		if(command == 0xEA){
+			memory[imm16] = V[A];
+		}
+		// ld a, [imm16]
+		if(command == 0xFA){
+			V[A] = memory[imm16] ;
+		}
+		
 	}
 
 	PC++;
