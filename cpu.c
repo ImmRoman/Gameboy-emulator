@@ -11,6 +11,9 @@ uint8_t V[0xF];
 	initialize r16 copies from V[0xF] into the u16 r16 registers
 	commit copies r16 changes into the correspective V[0xF]
 */
+
+/*TODO rewrite init r16 to copy with the condition RN3 == 6 or idk rewrite the code
+so you don't waste time on copying the registers for nothing!*/
 uint16_t r16[0x4];
 void init_r16();
 void commit_r16();
@@ -588,7 +591,7 @@ void execute(){
 				set_flag(SUB_FLAG);
 				cond_flag((V[A] - imm8) == 0,Z_FLAG);
 				cond_flag(V[A] < imm8,C_FLAG);
-				cond_flag((V[A] & 0x0F) < (imm8 & 0x0F));
+				cond_flag((V[A] & 0x0F) < (imm8 & 0x0F),H_FLAG);
 				break;
 			default:
 				break;
@@ -752,8 +755,34 @@ void execute(){
 			command = memory[PC];
 			CN3 = (command & 0x38) >> 3;
 			RN3 = (command & 0x07) >> 3;
+			
+			//bit b3, r8
+			if((command >> 6) == 0x01){
+				clear_flag(SUB_FLAG);
+				set_flag(H_FLAG);
+				init_r16();
+				operand_pointer = RN3 == 6 ? &memory[r16[HL]] : &V[RN3];
+				// I use the c_flag as a tmp to manipulate the selected bit
+				c_flag = *operand_pointer & (0x1 << CN3);
+				cond_flag(!c_flag,Z_FLAG);
+			}
+
+			//res b3, r8
+			if((command >> 6) == 0x02){
+				init_r16();
+				operand_pointer = RN3 == 6 ? &memory[r16[HL]] : &V[RN3];
+				*operand_pointer = *operand_pointer & (~(0x1 << CN3));
+			}
+
+			//set b3, r8
+			if((command >> 6) == 0x03){
+				init_r16();
+				operand_pointer = RN3 == 6 ? &memory[r16[HL]] : &V[RN3];
+				*operand_pointer = *operand_pointer | (0x1 << CN3);
+			}
+
+			// 0xCB block 00
 			if((command >> 6) == 0x00){
-				// Starts with 00
 				switch (CN3)
 				{
 				case 0x0:
@@ -777,12 +806,12 @@ void execute(){
 					break;
 				case 0x1:
 				// rrc r8
-				init_r16();
 
 				clear_flag(SUB_FLAG);
 				clear_flag(H_FLAG);
 				cond_flag(*operand_pointer & 0x01,C_FLAG);
 
+				init_r16();
 				operand_pointer = RN3 == 6 ? &memory[r16[HL]] : &V[RN3];
 				c_flag = *operand_pointer & 0x01;
 				*operand_pointer = *operand_pointer >> 1;
@@ -797,10 +826,12 @@ void execute(){
 					//rl r8
 					clear_flag(SUB_FLAG);
 					clear_flag(H_FLAG);
+
 					init_r16();
 					operand_pointer = RN3 == 6 ? &memory[r16[HL]] : &V[RN3];
 					c_flag = *operand_pointer & 0x80;
 					*operand_pointer = *operand_pointer << 1;
+
 					cond_flag(*operand_pointer == 0,Z_FLAG);
 					if(get_flag(C_FLAG)){*operand_pointer |= 0x01;}
 					cond_flag(c_flag,C_FLAG);
@@ -809,9 +840,12 @@ void execute(){
 					// rr r8
 					clear_flag(SUB_FLAG);
 					clear_flag(H_FLAG);
+
+					init_r16();
 					operand_pointer = RN3 == 6 ? &memory[r16[HL]] : &V[RN3];
 					c_flag = *operand_pointer & 0x01;
 					*operand_pointer = *operand_pointer >> 1;
+
 					if(get_flag(C_FLAG)){*operand_pointer |= 0x80;}
 					cond_flag(*operand_pointer == 0,Z_FLAG);
 					cond_flag(c_flag,C_FLAG);
@@ -821,9 +855,12 @@ void execute(){
 					// sla r8
 					clear_flag(SUB_FLAG);
 					clear_flag(H_FLAG);
+
+					init_r16();
 					operand_pointer = RN3 == 6 ? &memory[r16[HL]] : &V[RN3];
 					c_flag = *operand_pointer & 0x80;
 					*operand_pointer = *operand_pointer << 1;
+					
 					cond_flag(*operand_pointer == 0, Z_FLAG);
 					cond_flag(c_flag,C_FLAG);
 				break;
@@ -832,11 +869,14 @@ void execute(){
 					// sra r8
 					clear_flag(SUB_FLAG);
 					clear_flag(H_FLAG);
+
+					init_r16();
 					operand_pointer = RN3 == 6 ? &memory[r16[HL]] : &V[RN3];
 					c_flag = *operand_pointer & 0x01;
 					// tmp condition to flip MSB
 					tmp = operand_pointer > 0x7F;
 					*operand_pointer = *operand_pointer >> 1;
+
 					if(tmp){*operand_pointer |= 0x80;}
 					cond_flag(*operand_pointer == 0, Z_FLAG);
 					cond_flag(c_flag,C_FLAG);
@@ -845,6 +885,7 @@ void execute(){
 				case 0x6:
 					//swap r8
 					clear_flag(C_FLAG);clear_flag(H_FLAG);clear_flag(SUB_FLAG);
+					init_r16();
 					operand_pointer = RN3 == 6 ? &memory[r16[HL]] : &V[RN3];
 					//SWAP
 					*operand_pointer = (*operand_pointer << 4) + (*operand_pointer >> 4);
@@ -855,14 +896,18 @@ void execute(){
 					//srl r8
 					clear_flag(SUB_FLAG);
 					clear_flag(H_FLAG);
+
+					init_r16();
 					operand_pointer = RN3 == 6 ? &memory[r16[HL]] : &V[RN3];
 					c_flag = *operand_pointer & 0x01;
 					*operand_pointer = *operand_pointer >> 1;
+
 					cond_flag(c_flag,C_FLAG);
 					cond_flag(*operand_pointer,C_FLAG);
 				break;
 				
 				default:
+					printf("Error OP code %x could not be executed, check the prefix 0xCB switch logic",command);
 					break;
 				}
 			}			
