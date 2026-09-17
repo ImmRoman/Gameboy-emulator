@@ -82,6 +82,7 @@ void execute(){
 
 	//tmps for temporary storage or to reduce array accesses
 	uint8_t operand;
+	uint8_t* operand_pointer;
 	uint8_t c_flag;
 	int tmp;
 	
@@ -743,6 +744,128 @@ void execute(){
 		if(command == 0xF9){
 			init_r16();
 			SP = r16[HL];
+		}
+
+		/*----------PREFIX 0xCB---------------*/
+		if(command == 0xCB){
+			PC++;
+			command = memory[PC];
+			CN3 = (command & 0x38) >> 3;
+			RN3 = (command & 0x07) >> 3;
+			if((command >> 6) == 0x00){
+				// Starts with 00
+				switch (CN3)
+				{
+				case 0x0:
+					clear_flag(SUB_FLAG);
+					clear_flag(H_FLAG);
+					/* rlc r8 */
+					if(RN3 == 6){
+						init_r16();
+						c_flag = (memory[r16[HL]] & 0x80) >> 7;
+						memory[r16[HL]] = memory[r16[HL]] << 1;
+						cond_flag(c_flag,C_FLAG);
+						cond_flag(!memory[r16[HL]],Z_FLAG);
+						if(c_flag){memory[r16[HL]] |= 0x01;}
+						break;
+					}
+					c_flag = (V[RN3] & 0x80) >> 7;
+					V[RN3] = V[RN3] << 1;
+					cond_flag(c_flag,C_FLAG);
+					cond_flag(!V[RN3],Z_FLAG);
+					if(c_flag){V[RN3] |= 0x1;}
+					break;
+				case 0x1:
+				// rrc r8
+				init_r16();
+
+				clear_flag(SUB_FLAG);
+				clear_flag(H_FLAG);
+				cond_flag(*operand_pointer & 0x01,C_FLAG);
+
+				operand_pointer = RN3 == 6 ? &memory[r16[HL]] : &V[RN3];
+				c_flag = *operand_pointer & 0x01;
+				*operand_pointer = *operand_pointer >> 1;
+
+				cond_flag(*operand_pointer == 0,Z_FLAG);
+				if(c_flag){*operand_pointer |= 0x80;}
+				cond_flag(c_flag,C_FLAG);
+			
+				break;
+
+				case 0x2:
+					//rl r8
+					clear_flag(SUB_FLAG);
+					clear_flag(H_FLAG);
+					init_r16();
+					operand_pointer = RN3 == 6 ? &memory[r16[HL]] : &V[RN3];
+					c_flag = *operand_pointer & 0x80;
+					*operand_pointer = *operand_pointer << 1;
+					cond_flag(*operand_pointer == 0,Z_FLAG);
+					if(get_flag(C_FLAG)){*operand_pointer |= 0x01;}
+					cond_flag(c_flag,C_FLAG);
+				break;
+				case 0x3:
+					// rr r8
+					clear_flag(SUB_FLAG);
+					clear_flag(H_FLAG);
+					operand_pointer = RN3 == 6 ? &memory[r16[HL]] : &V[RN3];
+					c_flag = *operand_pointer & 0x01;
+					*operand_pointer = *operand_pointer >> 1;
+					if(get_flag(C_FLAG)){*operand_pointer |= 0x80;}
+					cond_flag(*operand_pointer == 0,Z_FLAG);
+					cond_flag(c_flag,C_FLAG);
+				break;
+				
+				case 0x4:
+					// sla r8
+					clear_flag(SUB_FLAG);
+					clear_flag(H_FLAG);
+					operand_pointer = RN3 == 6 ? &memory[r16[HL]] : &V[RN3];
+					c_flag = *operand_pointer & 0x80;
+					*operand_pointer = *operand_pointer << 1;
+					cond_flag(*operand_pointer == 0, Z_FLAG);
+					cond_flag(c_flag,C_FLAG);
+				break;
+				
+				case 0x5:
+					// sra r8
+					clear_flag(SUB_FLAG);
+					clear_flag(H_FLAG);
+					operand_pointer = RN3 == 6 ? &memory[r16[HL]] : &V[RN3];
+					c_flag = *operand_pointer & 0x01;
+					// tmp condition to flip MSB
+					tmp = operand_pointer > 0x7F;
+					*operand_pointer = *operand_pointer >> 1;
+					if(tmp){*operand_pointer |= 0x80;}
+					cond_flag(*operand_pointer == 0, Z_FLAG);
+					cond_flag(c_flag,C_FLAG);
+				break;
+				
+				case 0x6:
+					//swap r8
+					clear_flag(C_FLAG);clear_flag(H_FLAG);clear_flag(SUB_FLAG);
+					operand_pointer = RN3 == 6 ? &memory[r16[HL]] : &V[RN3];
+					//SWAP
+					*operand_pointer = (*operand_pointer << 4) + (*operand_pointer >> 4);
+					cond_flag(*operand_pointer,Z_FLAG);
+				break;
+
+				case 0x7:
+					//srl r8
+					clear_flag(SUB_FLAG);
+					clear_flag(H_FLAG);
+					operand_pointer = RN3 == 6 ? &memory[r16[HL]] : &V[RN3];
+					c_flag = *operand_pointer & 0x01;
+					*operand_pointer = *operand_pointer >> 1;
+					cond_flag(c_flag,C_FLAG);
+					cond_flag(*operand_pointer,C_FLAG);
+				break;
+				
+				default:
+					break;
+				}
+			}			
 		}
 
 		//TODO di ei
