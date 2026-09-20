@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include "cpu.h"
-uint8_t memory[0xFFFF];
+uint8_t memory[0x10000];
 uint16_t PC;
 uint16_t SP;
 uint8_t V[0xF];
@@ -81,7 +81,7 @@ void execute(){
 	
 	uint8_t command = memory[PC];
 	uint8_t imm8 = memory[PC + 1];
-	uint16_t imm16 = memory[PC + 2];
+	uint16_t imm16 = (memory[PC + 2] << 8) + imm8;
 
 	//tmps for temporary storage or to reduce array accesses
 	uint8_t operand;
@@ -89,7 +89,6 @@ void execute(){
 	uint8_t c_flag;
 	int tmp;
 	
-	imm16 = (imm16 << 8) + memory[PC + 1];
 	
 	if(command == 0){PC+=1;return;}
 
@@ -117,8 +116,9 @@ void execute(){
 				SP = imm16;
 				break;
 			}
-			V[2 * CN] = memory[PC + 1];
-			V[2 * CN + 1] = memory[PC + 2];
+			// imm16 è little eldian
+			V[2 * CN] = memory[PC + 2];
+			V[2 * CN + 1] = memory[PC + 1];
 			// we've read the imm16 so we go 2 steps ahead to the next instruction with the PC
 			PC += 2;
 			break;
@@ -126,12 +126,11 @@ void execute(){
 			case 0x2:
 			// ld [mem16], a
 				if(CN > 1){
-					//hl-
 					init_r16();
 					memory[r16[HL]] = V[A];
 					if (CN == 2)
-						r16[HL]--;
-					else r16[HL]++;
+						r16[HL]++;
+					else r16[HL]--;
 					commit_r16();
 					break;
 				}
@@ -157,8 +156,9 @@ void execute(){
 			break;
 
 			case 0x8:
-				// ld [imm16], sp. EZ one
+				// ld [imm16], sp. EZ one (EZ e ti scordi di saltare oltre l'imm16 grande boss)
 				SP = imm16;
+				PC += 2;
 			break;
 			/*--------------------
 			--- r16 Operations ---
@@ -218,8 +218,9 @@ void execute(){
 			if(V[CN3] == 0xFF){set_flag(C_FLAG);}
 			if((V[CN3] & 0xF) == 0xF){set_flag(H_FLAG);}
 			V[CN3] ++;
-			if(V[CN3] == 0x00){set_flag(Z_FLAG);}
+			cond_flag(V[CN3] == 0, Z_FLAG);
 			break;
+
 			// dec r8
 			case 0x5:
 			// no flag set for r16, only for r8
@@ -467,7 +468,7 @@ void execute(){
 				break;
 			}
 			V[A] = V[A] & V[RN3];
-			cond_flag(V[A],Z_FLAG);
+			cond_flag(V[A] == 0,Z_FLAG);
 		break;
 
 		case 0x5:
@@ -482,7 +483,7 @@ void execute(){
 				break;
 			}
 			V[A] = V[A] ^ V[RN3];
-			cond_flag(V[A],Z_FLAG);
+			cond_flag(V[A] == 0,Z_FLAG);
 		break;
 		
 		case 0x6:
@@ -497,7 +498,7 @@ void execute(){
 				break;
 			}
 			V[A] = V[A] | V[RN3];
-			cond_flag(V[A],Z_FLAG);
+			cond_flag(V[A] == 0,Z_FLAG);
 		break;
 		
 		case 0x7:
@@ -508,12 +509,12 @@ void execute(){
 				operand = memory[r16[HL]];
 				cond_flag(V[A] < operand,C_FLAG);
 				cond_flag((V[A] & 0x0F) < (operand & 0xF),H_FLAG);
-				cond_flag(V[A] - operand,Z_FLAG);
+				cond_flag((V[A] - operand) == 0,Z_FLAG);
 				break;
 			}
 			cond_flag(V[A] < operand,C_FLAG);
 			cond_flag((V[A] & 0x0F) < (operand & 0xF),H_FLAG);
-			cond_flag(V[A] - operand,Z_FLAG);
+			cond_flag((V[A] - operand) == 0,Z_FLAG);
 		break;
 		default:
 			break;
@@ -533,6 +534,7 @@ void execute(){
 				cond_flag((V[A] & 0x0F)+(imm8 & 0x0F) > 0xF, H_FLAG);
 				V[A] += imm8;
 				cond_flag(V[A] == 0,Z_FLAG);
+				PC++;
 				break;
 			case 0x1:
 				// adc a,imm8
@@ -542,6 +544,7 @@ void execute(){
 				cond_flag((V[A] & 0x0F)+(imm8 & 0x0F) + c_flag > 0xF, H_FLAG);
 				V[A] += imm8;
 				cond_flag(V[A] == 0,Z_FLAG);
+				PC++;
 				break;
 			break;
 			case 0x2:
@@ -551,6 +554,7 @@ void execute(){
 				cond_flag((V[A] & 0x0F)<(imm8 & 0x0F), H_FLAG);
 				V[A] -= imm8;
 				cond_flag(V[A] == 0,Z_FLAG);
+				PC++;
 				break;
 			case 0x3:
 				//sbc a,imm8
@@ -560,6 +564,7 @@ void execute(){
 				cond_flag((V[A] & 0x0F)<(imm8 & 0x0F) + c_flag, H_FLAG);
 				V[A] -= (imm8 + c_flag);
 				cond_flag(V[A] == 0,Z_FLAG);
+				PC++;
 				break;
 			case 0x4:
 				//and a,imm8
@@ -568,6 +573,7 @@ void execute(){
 				clear_flag(C_FLAG);
 				V[A] = V[A] & imm8;
 				cond_flag(V[A] == 0,Z_FLAG);
+				PC++;
 				break;
 			
 			case 0x5:
@@ -577,6 +583,7 @@ void execute(){
 				clear_flag(H_FLAG);
 				V[A] = V[A] ^ imm8;
 				cond_flag(V[A] == 0,Z_FLAG);
+				PC++;
 				break;
 			case 0x6:
 				//or a,imm8
@@ -585,6 +592,7 @@ void execute(){
 				clear_flag(H_FLAG);
 				V[A] = V[A] | imm8;
 				cond_flag(V[A] == 0,Z_FLAG);
+				PC++;
 				break;
 			case 0x7:
 				//cp a,imm8
@@ -592,6 +600,7 @@ void execute(){
 				cond_flag((V[A] - imm8) == 0,Z_FLAG);
 				cond_flag(V[A] < imm8,C_FLAG);
 				cond_flag((V[A] & 0x0F) < (imm8 & 0x0F),H_FLAG);
+				PC++;
 				break;
 			default:
 				break;
@@ -669,10 +678,10 @@ void execute(){
 		/*------POP / PUSH--------*/
 		break;
 		// pop r16stk
-		if(command & 0x0F == 0x1){
+		if((command & 0x0F) == 0x1){
 			init_r16();
 			// reuse the global u16 variable addr to store the value to pop from the stack
-			addr = memory[SP] << 8 + memory[SP + 1];
+			addr = (memory[SP] << 8) + memory[SP + 1];
 			// extract the Nibble that chooses the two registers to pop into
 			tmp = (command & 0x18) >> 4;
 			SP += 2;
@@ -706,19 +715,23 @@ void execute(){
 		// ldh [imm8], a
 		if(command == 0xE0){
 			memory[0xFF00 + imm8] = V[A];
+			PC++;
 		}
 		// ldh a, [imm8]
 		if(command == 0xF0){
 			V[A] = memory[0xFF00 + imm8] ;
+			PC++;
 		}
 		
 		// ld [imm16], a
 		if(command == 0xEA){
 			memory[imm16] = V[A];
+			PC+=2;
 		}
 		// ld a, [imm16]
 		if(command == 0xFA){
 			V[A] = memory[imm16] ;
+			PC += 2;
 		}
 
 		/*---------- SP operations ------------*/
@@ -729,6 +742,7 @@ void execute(){
 			cond_flag(SP + (int8_t)imm8 < SP,C_FLAG);
 			cond_flag((SP & 0xF) + ((int8_t)imm8 & 0xF) > 0xF,H_FLAG);
 			SP += (int8_t)imm8;
+			PC++; //imm8
 		}
 
 		// ld hl, sp + imm8	
@@ -741,6 +755,7 @@ void execute(){
 			init_r16();
 			r16[HL] = SP;
 			commit_r16();
+			PC++; //imm8
 		}
 		
 		// ld sp, hl
@@ -801,7 +816,7 @@ void execute(){
 					c_flag = (V[RN3] & 0x80) >> 7;
 					V[RN3] = V[RN3] << 1;
 					cond_flag(c_flag,C_FLAG);
-					cond_flag(!V[RN3],Z_FLAG);
+					cond_flag(V[RN3] == 0,Z_FLAG);
 					if(c_flag){V[RN3] |= 0x1;}
 					break;
 				case 0x1:
@@ -809,10 +824,10 @@ void execute(){
 
 				clear_flag(SUB_FLAG);
 				clear_flag(H_FLAG);
-				cond_flag(*operand_pointer & 0x01,C_FLAG);
 
 				init_r16();
 				operand_pointer = RN3 == 6 ? &memory[r16[HL]] : &V[RN3];
+				cond_flag(*operand_pointer & 0x01,C_FLAG);
 				c_flag = *operand_pointer & 0x01;
 				*operand_pointer = *operand_pointer >> 1;
 
@@ -927,7 +942,7 @@ void init_r16(){
 }
 
 void commit_r16(){
-	for(int i = 0; i < 2 ; i++){
+	for(int i = 0; i < 3 ; i++){
 		V[2*i] = r16[i] >> 8;
 		V[2*i + 1] = r16[i] & 0xFF;
 	}
