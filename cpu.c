@@ -107,7 +107,7 @@ void execute(){
 		Last byte switch
 		------------------
 		*/
-			switch (command & 0xF)
+		switch (command & 0xF)
 		{
 		case 0x1:
 			// ld r16, imm16
@@ -157,9 +157,11 @@ void execute(){
 
 			case 0x8:
 				// ld [imm16], sp. EZ one (EZ e ti scordi di saltare oltre l'imm16 grande boss)
+			//switch edge case with jp cond which can have 0xX8 ending
+				if(LN3 == 0x1){break;}
 				SP = imm16;
 				PC += 2;
-			break;
+			return;
 			/*--------------------
 			--- r16 Operations ---
 			---------------------*/	
@@ -195,10 +197,11 @@ void execute(){
 			if((r16[HL] & 0xFFF) + (r16[CN] & 0xFFF) > 0xFFF){set_flag(H_FLAG);}
 			tmp = r16[HL];
 			r16[HL] += r16[CN];
-			if(r16[HL] < tmp) set_flag(C_FLAG);
+			if(r16[HL] < tmp) {set_flag(C_FLAG);}
+			set_flag(C_FLAG);
 			commit_r16();
 			break;
-			}
+		}
 		/*
 		---------------------
 		Last 3 bits switch
@@ -244,27 +247,19 @@ void execute(){
 			
 			//jumps
 			case 0x0:
-			if(CN3 == 0x2){
-				//stop
-				return;
-			}
-			// Bring PC to next instruction, ready if condition is false
-			PC+=2;
+			//stop 00010000
+			if(CN3 == 0x2){ return; }
 			
-			if(CN3 == 0x3){
-				//jr imm8
-				PC += (int8_t)imm8;
-				return;
-			}
+			//jr imm8
+			if(CN3 == 0x3){ PC += (int8_t)imm8; return; }
 			else{
-				// minus 0x4 to remove the MSB of CN3 
+				//jr cond, imm8
+				// minus 0x4 to remove the MSB of CN3 always equal to 1 in this case
 				if(cond_jump(CN3 - 0x4)){
 				//I don't want to increase PC again at the end of the switch
 					PC += (int8_t)imm8;
 					return;
 				}
-				//Need this return so we don't PC+=3 skipping an instruction
-				return;
 			}
 			break;
 			//rotations
@@ -504,7 +499,7 @@ void execute(){
 		case 0x7:
 			//cp a, r8
 			set_flag(SUB_FLAG);
-			if(RN3 ==6){
+			if(RN3 == 6){
 				init_r16();
 				operand = memory[r16[HL]];
 				cond_flag(V[A] < operand,C_FLAG);
@@ -512,6 +507,7 @@ void execute(){
 				cond_flag((V[A] - operand) == 0,Z_FLAG);
 				break;
 			}
+			operand = V[RN3];
 			cond_flag(V[A] < operand,C_FLAG);
 			cond_flag((V[A] & 0x0F) < (operand & 0xF),H_FLAG);
 			cond_flag((V[A] - operand) == 0,Z_FLAG);
@@ -689,7 +685,7 @@ void execute(){
 			commit_r16();
 		}
 		// push r16stk
-		if(command & 0x0F == 0x5){
+		if((command & 0x0F)== 0x5){
 			init_r16();
 			// extract the Nibble that chooses the two registers to pop into
 			tmp = (command & 0x18) >> 4;
@@ -889,7 +885,7 @@ void execute(){
 					operand_pointer = RN3 == 6 ? &memory[r16[HL]] : &V[RN3];
 					c_flag = *operand_pointer & 0x01;
 					// tmp condition to flip MSB
-					tmp = operand_pointer > 0x7F;
+					tmp = *operand_pointer > 0x7F;
 					*operand_pointer = *operand_pointer >> 1;
 
 					if(tmp){*operand_pointer |= 0x80;}
@@ -947,8 +943,10 @@ void commit_r16(){
 		V[2*i + 1] = r16[i] & 0xFF;
 	}
 	// A and F are inverted in the enum to follow the r8 definition in the pandocs.
+	// Also in the cpu V[F] gets changed for the flags but not in r16 mmh this can cause bugs if we use r16[AF] ....
+	// For now i just comment out V[F]
 	V[A] = r16[3] >> 8;
-	V[F] = r16[3] & 0xFF;
+	//V[F] = r16[3] & 0xFF;
 }
 
 void p_registers(){

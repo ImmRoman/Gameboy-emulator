@@ -20,7 +20,7 @@
 #endif
 #endif
 
-    extern uint8_t memory[0xFFFF];
+    extern uint8_t memory[0x10000];
     extern uint16_t PC;
     extern uint16_t SP;
     /*
@@ -31,6 +31,7 @@
     */
     extern uint8_t V[0xF];
     extern uint16_t r16[0x4];
+    extern uint8_t get_flag(uint8_t FLAG);
     typedef enum
     {BC,DE,HL,AF} r16_t;
 

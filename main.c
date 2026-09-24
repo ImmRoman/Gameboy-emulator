@@ -3,7 +3,8 @@
 #include <string.h>
 #include "cpu.h"
 extern uint8_t V[0xF];
-extern uint8_t memory[0xFFFF];
+extern uint8_t memory[0x10000];
+extern uint8_t get_flag(uint8_t FLAG);
 void test_b0_N11();
 void test_b0_N3();
 void test_b0_N2();
@@ -171,7 +172,8 @@ void test_add_hl_flag(){
 	V[B] = 0x0;
 	V[C] = 0x08;
 	execute();
-	ASSERT(V[F] & 0x10);
+	ASSERT(get_flag(C_FLAG));
+	ASSERT(get_flag(H_FLAG));
 	ASSERT(V[L] == 0x2);		
 }
 
@@ -221,12 +223,12 @@ void test_0x2F(){
 }
 
 void test_0x28(){
-	memory[0x0] = 0x28;
-	memory[0x1] = 0x74;
-	PC = 0x0;
+	memory[0x14] = 0x28;
+	memory[0x15] = 0x74;
+	PC = 0x14;
 	V[F] = Z_FLAG;
 	execute();
-	ASSERT(PC == 0x74+2);
+	ASSERT(PC == 0x74+0x14);
 }
 
 void test_0x38(){
@@ -235,7 +237,7 @@ void test_0x38(){
 	PC = 0x0;
 	V[F] = C_FLAG;
 	execute();
-	ASSERT(PC == 0x74+2);
+	ASSERT(PC == 0x74);
 }
 
 
@@ -272,7 +274,6 @@ void test_ld_r8_r8_3(){
 	ASSERT(memory[0x5070]==0x33);
 }
 int main(){
-		
 	test_b0_N6();
 	clean();
 	test_b0_N9();
