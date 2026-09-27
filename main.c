@@ -278,12 +278,40 @@ void test_rlca(){
 	PC = 0x15;
 	V[A] = 0x8F;
 	execute();
-	p_registers();
 	ASSERT(V[A] == 0x1F);
 	ASSERT(!get_flag(SUB_FLAG));
 	ASSERT(!get_flag(H_FLAG));
 	ASSERT(!get_flag(Z_FLAG));
 	ASSERT(get_flag(C_FLAG));
+
+}
+void test_add_a_r8(){
+	// Add A,D
+	memory[0x0] = 0x82;
+	PC = 0;
+	V[A] = 0x24;
+	V[D] = 0x4F;
+	execute();
+	ASSERT(V[A] == 0x73);
+	ASSERT(!get_flag(C_FLAG));
+	ASSERT(get_flag(H_FLAG));
+	ASSERT(!get_flag(Z_FLAG));
+	ASSERT(!get_flag(SUB_FLAG));
+
+}
+void test_add_a_r8_z_flag(){
+	// Add A,D
+	memory[0x0] = 0x82;
+	PC = 0;
+	V[A] = 0xFF;
+	V[D] = 0x01;
+	execute();
+	printf("C_FLAG: %x H_FLAG: %x",get_flag(C_FLAG),get_flag(H_FLAG));
+	ASSERT(V[A] == 0x00);
+	ASSERT(get_flag(C_FLAG));
+	ASSERT(get_flag(H_FLAG));
+	ASSERT(get_flag(Z_FLAG));
+	ASSERT(!get_flag(SUB_FLAG));
 
 }
 int main(){
@@ -326,5 +354,9 @@ int main(){
 	test_ld_r8_r8_3();
 	clean();
 	test_rlca();
+	clean();
+	//test_add_a_r8();
+	clean();
+	test_add_a_r8_z_flag();
 	return 0;
 }

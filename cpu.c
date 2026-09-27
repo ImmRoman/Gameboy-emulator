@@ -379,13 +379,13 @@ void execute(){
 			if(RN3 == 0x6){
 				init_r16();
 				operand = memory[r16[HL]];
-				cond_flag(V[A]+operand<V[A],C_FLAG);
+				cond_flag(V[A]+operand > 0xFF,C_FLAG);
 				cond_flag((V[A]&0x0F)+(operand&0x0F) > 0x0F,H_FLAG);
 				V[A] += memory[r16[HL]];
 				cond_flag(V[A]==0,Z_FLAG);
 				break;
 			}
-			cond_flag(V[A]+V[RN3]<V[A],C_FLAG);
+			cond_flag(V[A]+V[RN3]>0xFF,C_FLAG);
 			cond_flag((V[A]&0x0F)+(V[RN3]&0x0F) > 0x0F,H_FLAG);
 			V[A]+=V[RN3];
 			cond_flag(V[A]==0,Z_FLAG);
@@ -398,13 +398,13 @@ void execute(){
 			if(RN3 == 0x6){
 				init_r16();
 				operand = memory[r16[HL]];
-				cond_flag(V[A] + operand + c_flag < V[A],C_FLAG);
+				cond_flag(V[A] + operand + c_flag > 0xFF,C_FLAG);
 				cond_flag((V[A]&0x0F)+(operand&0x0F)+c_flag > 0x0F,H_FLAG);
 				V[A] += (operand + c_flag);
 				cond_flag(V[A]==0,Z_FLAG);
 				break;
 			}
-			cond_flag(V[A] + V[RN3] + c_flag < V[A],C_FLAG);
+			cond_flag(V[A] + V[RN3] + c_flag > 0xFF,C_FLAG);
 			cond_flag((V[A]&0x0F) + (V[RN3]&0x0F) + c_flag> 0x0F,H_FLAG);
 			V[A]+=V[RN3] + c_flag;
 			cond_flag(V[A]==0,Z_FLAG);
@@ -441,7 +441,7 @@ void execute(){
 				cond_flag(V[A]==0,Z_FLAG);
 				break;
 			}
-			cond_flag(V[A] < V[RN3] + c_flag,C_FLAG);
+			cond_flag(V[RN3] + c_flag > 0xFF,C_FLAG);
 			cond_flag((V[A]&0x0F) < (V[RN3]&0x0F) + c_flag,H_FLAG);
 			V[A] -= (V[RN3] + c_flag);
 			cond_flag(V[A]==0,Z_FLAG);
@@ -521,7 +521,7 @@ void execute(){
 			case 0x0:
 				// add a, imm8
 				clear_flag(SUB_FLAG);
-				cond_flag(V[A] > V[A] + imm8, C_FLAG);
+				cond_flag(V[A] + imm8 > 0xFF, C_FLAG);
 				cond_flag((V[A] & 0x0F)+(imm8 & 0x0F) > 0xF, H_FLAG);
 				V[A] += imm8;
 				cond_flag(V[A] == 0,Z_FLAG);
@@ -531,7 +531,7 @@ void execute(){
 				// adc a,imm8
 				c_flag =  get_flag(C_FLAG);
 				clear_flag(SUB_FLAG);
-				cond_flag(V[A]  > V[A] + c_flag + imm8, C_FLAG);
+				cond_flag(V[A] + c_flag + imm8 > 0xFF, C_FLAG);
 				cond_flag((V[A] & 0x0F)+(imm8 & 0x0F) + c_flag > 0xF, H_FLAG);
 				V[A] += imm8;
 				cond_flag(V[A] == 0,Z_FLAG);
