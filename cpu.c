@@ -268,19 +268,14 @@ void execute(){
 			{
 				case 0x0:
 				//rlca rotate V[A] to the left and update the carry flag
-					if(V[A] > 0x7F){
-						set_flag(C_FLAG);
-					}
+					cond_flag(V[A] > 0x7F,C_FLAG);
 					V[A] = V[A] << 1;
 					V[A] = V[A] | get_flag(C_FLAG);
-
 					break;
 
 				case 0x1:
 				//rrca opposite of previous
-				if(V[A] & 0x1){
-					set_flag(C_FLAG);
-				}
+				cond_flag(V[A]&0x1,C_FLAG);
 				V[A] = V[A] >> 1;
 				V[A] = V[A] | (get_flag(C_FLAG) << 7);
 				break;

@@ -273,6 +273,19 @@ void test_ld_r8_r8_3(){
 	execute();
 	ASSERT(memory[0x5070]==0x33);
 }
+void test_rlca(){
+	memory[0x15] = 0x07;
+	PC = 0x15;
+	V[A] = 0x8F;
+	execute();
+	p_registers();
+	ASSERT(V[A] == 0x1F);
+	ASSERT(!get_flag(SUB_FLAG));
+	ASSERT(!get_flag(H_FLAG));
+	ASSERT(!get_flag(Z_FLAG));
+	ASSERT(get_flag(C_FLAG));
+
+}
 int main(){
 	test_b0_N6();
 	clean();
@@ -311,5 +324,7 @@ int main(){
 	test_ld_r8_r8_2();
 	clean();
 	test_ld_r8_r8_3();
+	clean();
+	test_rlca();
 	return 0;
 }
