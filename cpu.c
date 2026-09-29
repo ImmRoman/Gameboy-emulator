@@ -441,7 +441,7 @@ void execute(){
 				cond_flag(V[A]==0,Z_FLAG);
 				break;
 			}
-			cond_flag(V[RN3] + c_flag > 0xFF,C_FLAG);
+			cond_flag(V[A] < (V[RN3] + c_flag),C_FLAG);
 			cond_flag((V[A]&0x0F) < (V[RN3]&0x0F) + c_flag,H_FLAG);
 			V[A] -= (V[RN3] + c_flag);
 			cond_flag(V[A]==0,Z_FLAG);
@@ -533,11 +533,10 @@ void execute(){
 				clear_flag(SUB_FLAG);
 				cond_flag(V[A] + c_flag + imm8 > 0xFF, C_FLAG);
 				cond_flag((V[A] & 0x0F)+(imm8 & 0x0F) + c_flag > 0xF, H_FLAG);
-				V[A] += imm8;
+				V[A] += imm8 + c_flag;
 				cond_flag(V[A] == 0,Z_FLAG);
 				PC++;
 				break;
-			break;
 			case 0x2:
 				//sub a,imm8
 				set_flag(SUB_FLAG);
@@ -596,8 +595,6 @@ void execute(){
 			default:
 				break;
 			}
-			// salta l'immediato
-			PC ++;
 		}
 		
 		/*------RET--------*/

@@ -300,19 +300,342 @@ void test_add_a_r8(){
 
 }
 void test_add_a_r8_z_flag(){
-	// Add A,D
+	// add A,D
 	memory[0x0] = 0x82;
 	PC = 0;
 	V[A] = 0xFF;
 	V[D] = 0x01;
 	execute();
-	printf("C_FLAG: %x H_FLAG: %x",get_flag(C_FLAG),get_flag(H_FLAG));
 	ASSERT(V[A] == 0x00);
 	ASSERT(get_flag(C_FLAG));
 	ASSERT(get_flag(H_FLAG));
 	ASSERT(get_flag(Z_FLAG));
 	ASSERT(!get_flag(SUB_FLAG));
 
+}
+void test_adc_a_r8(){
+	// adc A,B
+	memory[0x0] = 0x88;
+	PC = 0;
+	V[F] |= C_FLAG;
+	V[A] = 0xFF;
+	V[B] = 0x00;
+	execute();
+	ASSERT(V[A] == 0x00);
+	ASSERT(get_flag(C_FLAG));
+	ASSERT(get_flag(H_FLAG));
+	ASSERT(get_flag(Z_FLAG));
+	ASSERT(!get_flag(SUB_FLAG));
+}
+void test_adc_a_hl(){
+	memory[0x0] = 0x8e;
+	PC = 0;
+	V[A] = 0x20;
+	V[H] = 0x30;
+	V[L] = 0x14;
+	memory[0x3014] = 0x70;
+	execute();
+	ASSERT(V[A] == 0x90);
+}
+void test_sub_a_r8(){
+	// sub A E
+	memory[0x0] = 0x93;
+	PC = 0;
+	V[A] = 0x30;
+	V[E] = 0x35;
+	execute();
+	ASSERT(V[A] == 0xFB);
+	ASSERT(get_flag(C_FLAG));
+	ASSERT(get_flag(H_FLAG));
+	ASSERT(!get_flag(Z_FLAG));
+	ASSERT(get_flag(SUB_FLAG));
+}
+void test_sub_a_r8_z_flag(){
+	// sub A E
+	memory[0x0] = 0x93;
+	PC = 0;
+	V[A] = 0x30;
+	V[E] = 0x30;
+	execute();
+	ASSERT(V[A] == 0x00);
+	ASSERT(!get_flag(C_FLAG));
+	ASSERT(!get_flag(H_FLAG));
+	ASSERT(get_flag(Z_FLAG));
+	ASSERT(get_flag(SUB_FLAG));
+}
+void test_sub_a_r8_hl(){
+	// sub A HL
+	memory[0x0] = 0x96;
+	PC = 0;
+	V[A] = 0x30;
+	V[H] = 0x35;
+	V[L] = 0x23;
+	memory[0x3523] = 0x25;
+	execute();
+	ASSERT(V[A] == 0x0B);
+	ASSERT(!get_flag(C_FLAG));
+	ASSERT(get_flag(H_FLAG));
+	ASSERT(!get_flag(Z_FLAG));
+	ASSERT(get_flag(SUB_FLAG));
+}
+void test_sbc_a_r8(){
+	// sbc A C
+	memory[0x0] = 0x99;
+	PC = 0;
+	V[A] = 0x30;
+	V[C] = 0x35;
+	V[F] |= C_FLAG;
+	execute();
+	ASSERT(V[A] == 0xFA);
+	ASSERT(get_flag(C_FLAG));
+	ASSERT(get_flag(H_FLAG));
+	ASSERT(!get_flag(Z_FLAG));
+	ASSERT(get_flag(SUB_FLAG));
+}
+void test_sbc_a_r8_z_flag(){
+	// sbc A D
+	memory[0x0] = 0x9A;
+	PC = 0;
+	V[A] = 0x30;
+	V[D] = 0x30;
+	execute();
+	ASSERT(V[A] == 0x00);
+	ASSERT(!get_flag(C_FLAG));
+	ASSERT(!get_flag(H_FLAG));
+	ASSERT(get_flag(Z_FLAG));
+	ASSERT(get_flag(SUB_FLAG));
+}
+void test_sbc_a_r8_hl(){
+	// sbc A, HL
+	memory[0x0] = 0x96;
+	PC = 0;
+	V[F] |= C_FLAG;
+	V[A] = 0x30;
+	V[H] = 0x35;
+	V[L] = 0x23;
+	memory[0x3523] = 0x24;
+	execute();
+	ASSERT(V[A] == 0x0C);
+	ASSERT(!get_flag(C_FLAG));
+	ASSERT(get_flag(H_FLAG));
+	ASSERT(!get_flag(Z_FLAG));
+	ASSERT(get_flag(SUB_FLAG));
+}
+void test_and(){
+	// and a,c
+	memory[0x50] = 0xA1;
+	PC = 0x50;
+	V[A] = 0x08;
+	V[C] = 0xF9;
+	execute();
+	ASSERT(V[A] == 0x08);
+	ASSERT(!get_flag(Z_FLAG));
+	ASSERT(!get_flag(SUB_FLAG));
+	ASSERT(get_flag(H_FLAG));
+	ASSERT(!get_flag(C_FLAG));
+}
+
+void test_and_z(){
+	// and a,c
+	memory[0x50] = 0xA1;
+	PC = 0x50;
+	V[A] = 0x08;
+	V[C] = 0x00;
+	execute();
+	ASSERT(V[A] == 0x00);
+	ASSERT(get_flag(Z_FLAG));
+	ASSERT(!get_flag(SUB_FLAG));
+	ASSERT(get_flag(H_FLAG));
+	ASSERT(!get_flag(C_FLAG));
+}
+
+void test_xor(){
+	// xor a,b
+	memory[0x50] = 0xA8;
+	PC = 0x50;
+	V[A] = 0x0F;
+	V[B] = 0xF0;
+	execute();
+	ASSERT(V[A] == 0xFF);
+	ASSERT(!get_flag(Z_FLAG));
+	ASSERT(!get_flag(SUB_FLAG));
+	ASSERT(!get_flag(H_FLAG));
+	ASSERT(!get_flag(C_FLAG));
+}
+
+void test_xor_z(){
+	// xor a,b
+	memory[0x50] = 0xA8;
+	PC = 0x50;
+	V[A] = 0xF0;
+	V[B] = 0xF0;
+	execute();
+	ASSERT(V[A] == 0x00);
+	ASSERT(get_flag(Z_FLAG));
+	ASSERT(!get_flag(SUB_FLAG));
+	ASSERT(!get_flag(H_FLAG));
+	ASSERT(!get_flag(C_FLAG));
+}
+void test_or(){
+	// or a,d
+	memory[0x50] = 0xB2;
+	PC = 0x50;
+	V[A] = 0xF0;
+	V[D] = 0xF0;
+	execute();
+	ASSERT(V[A] == 0xF0);
+	ASSERT(!get_flag(Z_FLAG));
+	ASSERT(!get_flag(SUB_FLAG));
+	ASSERT(!get_flag(H_FLAG));
+	ASSERT(!get_flag(C_FLAG));
+}
+
+void test_or_z(){
+	// or a,d
+	memory[0x50] = 0xB2;
+	PC = 0x50;
+	V[A] = 0x00;
+	V[D] = 0x00;
+	execute();
+	ASSERT(V[A] == 0x00);
+	ASSERT(get_flag(Z_FLAG));
+	ASSERT(!get_flag(SUB_FLAG));
+	ASSERT(!get_flag(H_FLAG));
+	ASSERT(!get_flag(C_FLAG));
+}
+void test_cp(){
+	//cp a,c
+	memory[0x32] = 0xB9;
+	PC = 0x32;
+	V[A] = 0x4A;
+	V[C] = 0x5B;
+	execute();
+	ASSERT(!get_flag(Z_FLAG));
+	ASSERT(get_flag(SUB_FLAG));
+	ASSERT(get_flag(H_FLAG));
+	ASSERT(get_flag(C_FLAG));
+}
+void test_cp_z_flag(){
+	//cp a,c
+	memory[0x32] = 0xB9;
+	PC = 0x32;
+	V[A] = 0x4A;
+	V[C] = 0x4A;
+	execute();
+	ASSERT(get_flag(Z_FLAG));
+	ASSERT(get_flag(SUB_FLAG));
+	ASSERT(!get_flag(H_FLAG));
+	ASSERT(!get_flag(C_FLAG));
+}
+void test_add_a_imm8(){
+	memory[0x00] = 0xC6;
+	memory[0x01] = 0x23;
+	V[A] = 0xFF;
+	execute();
+	ASSERT(V[A] == 0x22);
+	ASSERT(!get_flag(Z_FLAG));
+	ASSERT(!get_flag(SUB_FLAG));
+	ASSERT(get_flag(H_FLAG));
+	ASSERT(get_flag(C_FLAG));
+}
+void test_add_a_imm8_z_flag(){
+	memory[0x00] = 0xC6;
+	memory[0x01] = 0x01;
+	V[A] = 0xFF;
+	execute();
+	ASSERT(V[A] == 0x00);
+	ASSERT(get_flag(Z_FLAG));
+	ASSERT(!get_flag(SUB_FLAG));
+	ASSERT(get_flag(H_FLAG));
+	ASSERT(get_flag(C_FLAG));
+}
+void test_adc_a_imm8(){
+	memory[0x00] = 0xCE;
+	memory[0x01] = 0x23;
+	V[A] = 0xFF;
+	execute();
+	ASSERT(V[A] == 0x22);
+	ASSERT(!get_flag(Z_FLAG));
+	ASSERT(!get_flag(SUB_FLAG));
+	ASSERT(get_flag(H_FLAG));
+	ASSERT(get_flag(C_FLAG));
+
+	memory[0x02] = 0xCE;
+	memory[0x03] = 0x00;
+	V[F] |= C_FLAG;
+	V[A] = 0xFF;
+	execute();
+	ASSERT(V[A] == 0x00);
+	ASSERT(get_flag(Z_FLAG));
+	ASSERT(!get_flag(SUB_FLAG));
+	ASSERT(get_flag(H_FLAG));
+	ASSERT(get_flag(C_FLAG));
+	ASSERT(PC == 0x4);
+}
+void test_sub_a_imm8(){
+	memory[0x00] = 0xD6;
+	memory[0x01] = 0x23;
+	V[A] = 0xFF;
+	execute();
+	ASSERT(V[A] == 0xDC);
+	ASSERT(!get_flag(Z_FLAG));
+	ASSERT(get_flag(SUB_FLAG));
+	ASSERT(!get_flag(H_FLAG));
+	ASSERT(!get_flag(C_FLAG));
+
+	memory[0x02] = 0xD6;
+	memory[0x03] = 0x36;
+	V[A] = 0x23;
+	execute();
+	ASSERT(V[A] == 0xED);
+	ASSERT(!get_flag(Z_FLAG));
+	ASSERT(get_flag(SUB_FLAG));
+	ASSERT(get_flag(H_FLAG));
+	ASSERT(get_flag(C_FLAG));
+
+	memory[0x04] = 0xD6;
+	memory[0x05] = 0x01;
+	V[A] = 0x01;
+	execute();
+	ASSERT(V[A] == 0x00);
+	ASSERT(get_flag(Z_FLAG));
+	ASSERT(get_flag(SUB_FLAG));
+	ASSERT(!get_flag(H_FLAG));
+	ASSERT(!get_flag(C_FLAG));
+}
+void test_sbc_a_imm8(){
+	memory[0x00] = 0xDE;
+	memory[0x01] = 0x22;
+	V[F] |= C_FLAG;
+	V[A] = 0xFF;
+	execute();
+	ASSERT(V[A] == 0xDC);
+	ASSERT(!get_flag(Z_FLAG));
+	ASSERT(get_flag(SUB_FLAG));
+	ASSERT(!get_flag(H_FLAG));
+	ASSERT(!get_flag(C_FLAG));
+
+	memory[0x02] = 0xDE;
+	memory[0x03] = 0x35;
+	V[A] = 0x23;
+	V[F] |= C_FLAG;
+	execute();
+	ASSERT(V[A] == 0xED);
+	ASSERT(!get_flag(Z_FLAG));
+	ASSERT(get_flag(SUB_FLAG));
+	ASSERT(get_flag(H_FLAG));
+	ASSERT(get_flag(C_FLAG));
+
+	memory[0x04] = 0xDE;
+	memory[0x05] = 0x00;
+	V[F] |= C_FLAG;
+	V[A] = 0x01;
+	execute();
+	ASSERT(V[A] == 0x00);
+	ASSERT(get_flag(Z_FLAG));
+	ASSERT(get_flag(SUB_FLAG));
+	ASSERT(!get_flag(H_FLAG));
+	ASSERT(!get_flag(C_FLAG));
 }
 int main(){
 	test_b0_N6();
@@ -355,8 +678,50 @@ int main(){
 	clean();
 	test_rlca();
 	clean();
-	//test_add_a_r8();
+	test_add_a_r8();
 	clean();
 	test_add_a_r8_z_flag();
+	clean();
+	test_adc_a_hl();
+	clean();
+	test_adc_a_r8();
+	clean();
+	test_sub_a_r8_z_flag();
+	clean();
+	test_sub_a_r8_hl();
+	clean();
+	test_sub_a_r8();
+	clean();
+	test_sbc_a_r8_z_flag();
+	clean();
+	test_sbc_a_r8_hl();
+	clean();
+	test_sbc_a_r8();
+	clean();
+	test_and();
+	clean();
+	test_and_z();
+	clean();
+	test_xor();
+	clean();
+	test_xor_z();
+	clean();
+	test_or();
+	clean();
+	test_or_z();
+	clean();
+	test_cp();
+	clean();
+	test_cp_z_flag();
+	clean();
+	test_add_a_imm8();
+	clean();
+	test_add_a_imm8_z_flag();
+	clean();
+	test_adc_a_imm8();
+	clean();
+	test_sub_a_imm8();
+	clean();
+	test_sbc_a_imm8();
 	return 0;
 }
