@@ -50,12 +50,16 @@ uint8_t get_cond(uint8_t NN){
 	switch (NN)
 	{
 	case 0x0:
+		//NZ
 		return !get_flag(Z_FLAG);
 	case 0x1:
+		//Z
 		return get_flag(Z_FLAG);
 	case 0x2:
+		//NC
 		return !get_flag(C_FLAG);
 	case 0x3:
+		//C
 		return get_flag(C_FLAG);
 	default:
 		break;
@@ -598,9 +602,9 @@ void execute(){
 		}
 		
 		/*------RET--------*/
-		if(LN3 == 3 &&  RN3 == 0){
+		if(LN3 == 6 &&  RN3 == 0){
 			// ret cond
-			if(get_cond(CN3 & 0x06)){
+			if(get_cond(CN3 & 0x3)){
 				pop16();
 				return;
 			}
@@ -612,7 +616,7 @@ void execute(){
 		}
 		if(command == 0xD9){
 			pop16();
-			//TODO interrupt handling
+			//TODO Reti interrupt handling
 			return;
 		}
 		
@@ -620,7 +624,7 @@ void execute(){
 		/*------JP--------*/
 		if(LN3 == 6 && RN3 == 2){
 			// jp cond, imm16
-			if(get_cond(CN3)){
+			if(get_cond(CN3 & 0x3)){
 				PC = imm16;
 				return;
 			}

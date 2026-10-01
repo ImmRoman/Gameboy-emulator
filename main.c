@@ -731,7 +731,40 @@ void test_cp_a_imm8(){
 	ASSERT(!get_flag(C_FLAG));
 	ASSERT(get_flag(Z_FLAG));
 }
-int main(){
+void test_ret_cond(){
+	//ret Z
+	memory[0x00] = 0xC8;
+	SP = 0x56;
+	memory[0x56] = 0x21;
+	memory[0x57] = 0x4A;
+	V[F] |= Z_FLAG; 
+	execute();
+	ASSERT(PC == 0x4A21);
+	ASSERT(SP == 0x58);
+
+}
+void test_reti(){
+	//TODO
+}
+void test_jp_cond_imm16(){
+	// jp nc imm16
+	memory[0x00] = 0xD2;
+	V[F] |= C_FLAG;
+	execute();
+
+
+	V[F] = 0;
+	memory[0x03] = 0xD2;
+	memory[0x04] = 0x33;
+	memory[0x05] = 0xA5;
+	execute();
+	ASSERT(PC == 0xA533);
+	
+}
+int test_suite(){
+	clean();
+	test_jp_cond_imm16();
+	clean();
 	test_b0_N6();
 	clean();
 	test_b0_N9();
@@ -825,5 +858,16 @@ int main(){
 	test_or_a_imm8();
 	clean();
 	test_cp_a_imm8();
+	clean();
+	test_ret_cond();
+	clean();
+	test_reti();
+	clean();
 	return 0;
 }
+
+
+int main(){
+	test_suite();
+}
+
