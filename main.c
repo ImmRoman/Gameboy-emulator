@@ -637,6 +637,100 @@ void test_sbc_a_imm8(){
 	ASSERT(!get_flag(H_FLAG));
 	ASSERT(!get_flag(C_FLAG));
 }
+void test_and_a_imm8(){
+	memory[0x00] = 0xE6;
+	memory[0x01] = 0x07;
+	V[A] = 0xF9;
+	execute();
+	ASSERT(V[A] == 0x01);
+	ASSERT(!get_flag(Z_FLAG));
+	ASSERT(!get_flag(SUB_FLAG));
+	ASSERT(get_flag(H_FLAG));
+	ASSERT(!get_flag(C_FLAG));
+
+	memory[0x02] = 0xE6;
+	memory[0x03] = 0x00;
+	V[A] = 0xF9;
+	execute();
+	ASSERT(V[A] == 0x00);
+	ASSERT(get_flag(Z_FLAG));
+	ASSERT(!get_flag(SUB_FLAG));
+	ASSERT(get_flag(H_FLAG));
+	ASSERT(!get_flag(C_FLAG));
+}
+void test_xor_a_imm8(){
+	memory[0x00] = 0xEE;
+	memory[0x01] = 0x07;
+	V[A] = 0xF9;
+	execute();
+	ASSERT(V[A] == 0xFE);
+	ASSERT(!get_flag(Z_FLAG));
+	ASSERT(!get_flag(SUB_FLAG));
+	ASSERT(!get_flag(H_FLAG));
+	ASSERT(!get_flag(C_FLAG));
+
+	memory[0x02] = 0xEE;
+	memory[0x03] = 0x11;
+	V[A] = 0x11;
+	execute();
+	ASSERT(V[A] == 0x00);
+	ASSERT(get_flag(Z_FLAG));
+	ASSERT(!get_flag(SUB_FLAG));
+	ASSERT(!get_flag(H_FLAG));
+	ASSERT(!get_flag(C_FLAG));
+}
+void test_or_a_imm8(){
+	memory[0x00] = 0xF6;
+	memory[0x01] = 0x07;
+	V[A] = 0xF9;
+	execute();
+	ASSERT(V[A] == 0xFF);
+	ASSERT(!get_flag(Z_FLAG));
+	ASSERT(!get_flag(SUB_FLAG));
+	ASSERT(!get_flag(H_FLAG));
+	ASSERT(!get_flag(C_FLAG));
+
+	memory[0x02] = 0xF6;
+	memory[0x03] = 0x11;
+	V[A] = 0x11;
+	execute();
+	ASSERT(V[A] == 0x11);
+	ASSERT(!get_flag(Z_FLAG));
+	ASSERT(!get_flag(SUB_FLAG));
+	ASSERT(!get_flag(H_FLAG));
+	ASSERT(!get_flag(C_FLAG));
+
+	memory[0x04] = 0xF6;
+	memory[0x05] = 0x00;
+	V[A] = 0x00;
+	execute();
+	ASSERT(V[A] == 0x00);
+	ASSERT(get_flag(Z_FLAG));
+	ASSERT(!get_flag(SUB_FLAG));
+	ASSERT(!get_flag(H_FLAG));
+	ASSERT(!get_flag(C_FLAG));
+}
+void test_cp_a_imm8(){
+	memory[0x00] = 0xFE;
+	memory[0x01] = 0xAB;
+	V[A] = 0x9A;
+	execute();
+	ASSERT(V[A] == 0x9A);
+	ASSERT(get_flag(SUB_FLAG));
+	ASSERT(get_flag(H_FLAG));
+	ASSERT(get_flag(C_FLAG));
+	ASSERT(!get_flag(Z_FLAG));
+
+	memory[0x02] = 0xFE;
+	memory[0x03] = 0xAB;
+	V[A] = 0xAB;
+	execute();
+	ASSERT(V[A] == 0xAB);
+	ASSERT(get_flag(SUB_FLAG));
+	ASSERT(!get_flag(H_FLAG));
+	ASSERT(!get_flag(C_FLAG));
+	ASSERT(get_flag(Z_FLAG));
+}
 int main(){
 	test_b0_N6();
 	clean();
@@ -723,5 +817,13 @@ int main(){
 	test_sub_a_imm8();
 	clean();
 	test_sbc_a_imm8();
+	clean();
+	test_and_a_imm8();
+	clean();
+	test_xor_a_imm8();
+	clean();
+	test_or_a_imm8();
+	clean();
+	test_cp_a_imm8();
 	return 0;
 }
