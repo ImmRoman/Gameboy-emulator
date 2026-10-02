@@ -668,12 +668,12 @@ void execute(){
 		}
 
 		/*------POP / PUSH--------*/
-		break;
 		// pop r16stk
 		if((command & 0x0F) == 0x1){
 			init_r16();
 			// reuse the global u16 variable addr to store the value to pop from the stack
-			addr = (memory[SP] << 8) + memory[SP + 1];
+			// Load the contents of memory specified by stack pointer SP into the lower portion of r16
+			addr = (memory[SP + 1] << 8) + memory[SP];
 			// extract the Nibble that chooses the two registers to pop into
 			tmp = (command & 0x18) >> 4;
 			SP += 2;

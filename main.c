@@ -761,10 +761,56 @@ void test_jp_cond_imm16(){
 	ASSERT(PC == 0xA533);
 	
 }
+void test_jp_hl(){
+	memory[0x00] = 0xE9;
+	V[H] = 0x10;
+	V[L] = 0x50;
+	execute();
+	ASSERT(PC == 0x1050);
+}
+void test_call_cond_imm16(){
+	PC = 0x04;
+	// call C, imm16
+	memory[0x04] = 0xDC;
+	SP = 50;
+	execute();
+	ASSERT(PC == 7);
+	memory[0x07] = 0xDC;
+	memory[0x08] = 0xBA;
+	memory[0x09] = 0x36;
+	V[F] |= C_FLAG;
+	execute();
+	ASSERT(PC == 0x36BA);
+	ASSERT(SP == 48);
+	ASSERT(memory[SP] == 0x07);
+	ASSERT(memory[SP+1] == 0x00);
+}
+void test_rst(){
+	//TODO
+}
+void test_r16_stk(){
+	//pop DE
+	memory[0x00] = 0xD1;
+	SP = 0x50;
+	memory[0x50] = 0xDD;
+	memory[0x51] = 0xEE;
+	execute();
+	ASSERT(V[D] == 0xEE);
+	ASSERT(V[E] == 0xDD);
+	ASSERT(SP == 0x52);
+}
+void test_push_r16_stk(){
+	// push BC
+	memory[0x00] = 0xC5;
+	SP = 0x50;
+	V[B] = 0x30;
+	V[C] = 0x40;
+	execute();
+	ASSERT(memory[SP] == 0x40);
+	ASSERT(memory[SP+1] == 0x30);
+	ASSERT(SP == 0x4E);
+}
 int test_suite(){
-	clean();
-	test_jp_cond_imm16();
-	clean();
 	test_b0_N6();
 	clean();
 	test_b0_N9();
@@ -863,6 +909,15 @@ int test_suite(){
 	clean();
 	test_reti();
 	clean();
+	test_jp_hl();
+	clean();
+	test_jp_cond_imm16();
+	clean();
+	test_call_cond_imm16();
+	clean();
+	test_r16_stk();
+	clean();
+	test_push_r16_stk();
 	return 0;
 }
 
