@@ -700,7 +700,7 @@ void execute(){
 			memory[0xFF00 + V[C]] = V[A];
 		}
 		// ldh a, [c]
-		if(command == 0xE2){
+		if(command == 0xF2){
 			V[A] = memory[0xFF00 + V[C]];
 		}
 
@@ -743,10 +743,9 @@ void execute(){
 			clear_flag(Z_FLAG);
 			cond_flag(SP + (int8_t)imm8 < SP,C_FLAG);
 			cond_flag((SP & 0xF) + ((int8_t)imm8 & 0xF) > 0xF,H_FLAG);
-			SP += (uint8_t) imm8;
-			init_r16();
-			r16[HL] = SP;
-			commit_r16();
+			SP += (int8_t) imm8;
+			V[H] = (SP >> 8);
+			V[L] = SP;
 			PC++; //imm8
 		}
 		
@@ -953,7 +952,7 @@ void p_registers(){
 		printf("V[%d] = 0x%x | ",i,V[i]);
 	}
 	p_line(lines);
-	printf("\nPC = %x | SP = %x", PC, SP);
+	printf("\nPC = 0x%x | SP = 0x%x", PC, SP);
 }
 
 void p_line(int lenght){

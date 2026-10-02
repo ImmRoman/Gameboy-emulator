@@ -810,6 +810,64 @@ void test_push_r16_stk(){
 	ASSERT(memory[SP+1] == 0x30);
 	ASSERT(SP == 0x4E);
 }
+void test_ldh(){
+	memory[0x00] = 0xE2;
+	V[A] = 0x0C;
+	V[C] = 0x20;
+	execute();
+	ASSERT(memory[0xFF00 + V[C]] == 0x0C);
+
+	memory[0x01] = 0xF2;
+	V[C] = 0x13;
+	memory[0xFF00 + V[C]] = 0xAA;
+	execute();
+	ASSERT(V[A] = 0xAA);
+
+	memory[0x02] = 0xE0;
+	memory[0x03] = 0x14;
+	execute();
+	ASSERT(memory[0xFF00 + 0x14] == 0xAA);
+
+	memory[0x04] = 0xF0;
+	memory[0x05] = 0x5A;
+	memory[0xFF00 + 0x5A] = 0xA6;
+	execute();
+	ASSERT(V[A] == 0xA6);
+
+	memory[0x06] = 0xEA;
+	memory[0x07] = 0xAA;
+	memory[0x08] = 0xBB;
+	execute();
+	ASSERT(memory[0xBBAA] == V[A]);
+
+	memory[0x09] = 0xFA;
+	memory[0x0A] = 0xCC;
+	memory[0x0B] = 0xD3;
+	memory[0xD3CC] = 0x56;
+	execute();
+	ASSERT(V[A] == 0x56);
+}
+void test_sp_operations(){
+	//add sp imm8
+	memory[0x00] = 0xE8;
+	memory[0x01] = 0xFE;
+	SP = 0x99;
+	execute();
+	ASSERT(SP == 0x97);
+	
+	memory[0x02] = 0xF8;
+	memory[0x03] = 0xFE;
+	execute();
+	ASSERT(V[H] == 0x00);
+	ASSERT(V[L] == 0x95);
+
+	memory[0x04] = 0xF9;
+	V[H] = 0xA1;
+	V[L] = 0x21;
+	execute();
+	ASSERT(SP == 0xA121);
+
+}
 int test_suite(){
 	test_b0_N6();
 	clean();
@@ -918,6 +976,10 @@ int test_suite(){
 	test_r16_stk();
 	clean();
 	test_push_r16_stk();
+	clean();
+	test_ldh();
+	clean();
+	test_sp_operations();
 	return 0;
 }
 
