@@ -1,5 +1,5 @@
 CC = gcc
-CFLAGS = -Wall -g
+CFLAGS = -Wall -g -I SDL3-3.4.18/x86_64-w64-mingw32/include
 TARGET = main
 SRCS = main.c cpu.c 
 OBJS = $(SRCS:.c=.o)
@@ -8,7 +8,7 @@ all: $(TARGET)
 
 # Rule to link the object files and create the final executable
 $(TARGET): $(OBJS)
-	$(CC) $(CFLAGS) -o $(TARGET) $(OBJS)
+	$(CC) $(CFLAGS) -o $(TARGET) $(OBJS) -L SDL3-3.4.18/x86_64-w64-mingw32/lib -lSDL3 -mwindows
 	rm -f $(OBJS)
 	./$(TARGET)
 # Rule to compile individual .c files into .o (object) files
